@@ -11,6 +11,8 @@ bundle exec rake
 
 The default task runs RSpec and RuboCop. Unit tests use tiny local Hunspell fixtures and need no downloaded dictionaries or network access. The integration spec uses the actual bundled English dictionary with an empty, isolated Kotoshu cache and exercises the real RuboCop CLI, plugin discovery, and cache invalidation. Coverage is written to `coverage/`.
 
+The repository enables its own `Spellcheck/Comments` cop in `.rubocop.yml`, so the default task and CI lint comments using bundled English plus `.spellcheck.txt` for project vocabulary.
+
 For manual checks against a real dictionary:
 
 ```sh
