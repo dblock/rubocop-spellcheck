@@ -1,6 +1,6 @@
 ## Changelog
 
-### 0.1.0 (Next)
+### 0.1.0 (2026/10/20)
 
 * [#12](https://github.com/dblock/rubocop-spellcheck/pull/12): Preserve Markdown parsing and use original prose buffers - [@dblock](https://github.com/dblock).
 * [#9](https://github.com/dblock/rubocop-spellcheck/pull/9): Preserve English accented words and ignore quoted delimiters, numeric identifiers, and Liquid template expressions in Markdown - [@dblock](https://github.com/dblock).
@@ -13,4 +13,3 @@
 * [#2](https://github.com/dblock/rubocop-spellcheck/pull/2): Add monthly and manual maintenance PRs for the latest stable Kotoshu release and bundled English dictionary with license and provenance updates - [@dblock](https://github.com/dblock).
 * [#1](https://github.com/dblock/rubocop-spellcheck/pull/1): Bundle English for zero-setup defaults and support language-keyed DictionaryFiles with gem-relative and local paths for replacement, supplemental vocabulary, and multilingual checking - [@dblock](https://github.com/dblock).
 * Initial implementation of Spellcheck/Spelling with offline Kotoshu dictionaries, project vocabulary, precise offenses, and spelling suggestions - [@dblock](https://github.com/dblock).
-* Your contribution here.
