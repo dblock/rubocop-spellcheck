@@ -13,16 +13,20 @@ module RuboCop
       end
 
       def valid_syntax?
-        ProseSource.file?(path) ? false : super
+        ProseSource.file?(path) && !markdown_preprocessor? ? false : super
       end
 
       private
 
       def parse(source, *)
-        return super unless ProseSource.file?(path)
+        return super if !ProseSource.file?(path) || markdown_preprocessor?
 
         super('', *)
         @buffer = Parser::Source::Buffer.new(path, source: source)
+      end
+
+      def markdown_preprocessor?
+        Markdown.file?(path) && respond_to?(:markdown_document)
       end
     end
   end
