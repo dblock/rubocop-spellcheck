@@ -10,4 +10,7 @@ AllCops:
 Spellcheck/Spelling:
   Description: Check spelling in Ruby comments and Markdown prose.
   Enabled: true
+  Markdown:
+    FrontMatter:
+      Enabled: true
   VersionAdded: "0.1"
