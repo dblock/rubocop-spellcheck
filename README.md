@@ -116,7 +116,16 @@ The same cop discovers `.md` and `.markdown` files and checks their prose:
 Check [the spelling](https://example.com) but not `code_identifiers`.
 ```
 
-Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, HTML tags/comments and HTML blocks, and YAML front matter are skipped. URLs and email addresses are ignored in both formats. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
+Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, and HTML tags/comments and HTML blocks are skipped. URLs and email addresses are ignored in both formats. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
+
+YAML front matter checks string values recursively, including values inside mappings and arrays. Keys and strongly typed values such as numbers, booleans, dates, timestamps, and nulls are skipped. Quoted values are strings even when their contents resemble another type. Anchored strings are checked at their definition, not repeated through aliases; explicit string tags are supported, while other tags are ignored. YAML is parsed without constructing application objects. Plain and quoted values and multiline literal/folded values retain their original diagnostic locations, including quoted escape sequences. Invalid YAML produces an explicit error. Strings such as layout names and slugs are checked too; add intentional vocabulary to your dictionary. To disable front matter checks:
+
+```yaml
+Spellcheck/Spelling:
+  Markdown:
+    FrontMatter:
+      Enabled: false
+```
 
 Before the first release, `Spellcheck/Comments` was renamed to `Spellcheck/Spelling`. Update any existing cop-specific configuration, `--only` arguments, or Ruby suppression directives to use the new name.
 

@@ -23,6 +23,11 @@ module RuboCop
         def on_other_file
           return unless RuboCop::Spellcheck::Markdown.file?(processed_source.path)
 
+          if front_matter_enabled?
+            RuboCop::Spellcheck::FrontMatter.new(processed_source.buffer).each_span do |text, positions|
+              check_markdown_span(text, positions)
+            end
+          end
           RuboCop::Spellcheck::Markdown.new(processed_source.buffer).each_span do |text, positions|
             check_markdown_span(text, positions)
           end
@@ -33,6 +38,10 @@ module RuboCop
         end
 
         private
+
+        def front_matter_enabled?
+          cop_config.fetch('Markdown', {}).fetch('FrontMatter', {}).fetch('Enabled', true)
+        end
 
         def checker
           @checker ||= RuboCop::Spellcheck::Checker.new(

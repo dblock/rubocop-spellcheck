@@ -5,6 +5,7 @@ backend
 basename
 BlockLength
 blockquotes
+booleans
 changelog
 checksums
 CLI
@@ -18,6 +19,7 @@ Kotoshu
 Kotoshu's
 macOS
 md
+multiline
 ONNX
 PRs
 precompiled

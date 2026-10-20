@@ -144,7 +144,7 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
   it 'skips front matter and HTML without treating standalone punctuation as words' do
     source = <<~MARKDOWN
       ---
-      typpo: wrold
+      typpo: 123
       ---
       <!-- wrold -->
 
@@ -164,5 +164,60 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
 
   def markdown_offenses(source, path = 'example.md')
     _investigate(cop, parse_source(source, path))
+  end
+
+  it 'checks string values without checking keys or strongly typed metadata' do
+    source = "---\ntitle: 😀 wrold\ncount: 42\ndescription: 'hello wrold'\nsummary: world\n---\nhello\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[2, 9, 'wrold'], [4, 20, 'wrold']]
+    )
+  end
+
+  it 'maps quoted YAML escapes and multiline block scalars to original source ranges' do
+    source = "---\ntitle: \"wro\\u006cd\"\ndescription: >-\n  hello\n  wrold\nsummary: |\n  wrold\n---\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.location.source] }).to eq(
+      [[2, 'wro\\u006cd'], [5, 'wrold'], [7, 'wrold']]
+    )
+  end
+
+  it 'checks nested mappings, arrays, anchored strings, and explicitly tagged strings' do
+    source = "---\nmetadata:\n  caption: [hello, wrold]\nsummary: &text wrold\n" \
+             "description: *text\nother: !!str wrold\n---\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([3, 4, 6])
+  end
+
+  it 'disables front matter spelling with nested Markdown configuration' do
+    config['Spellcheck/Spelling']['Markdown'] = { 'FrontMatter' => { 'Enabled' => false } }
+    expect(markdown_offenses("---\ntitle: wrold\n---\n")).to be_empty
+  end
+
+  it 'skips numbers, booleans, dates, timestamps, nulls, and aliases' do
+    source = "---\nvalues: [42, 1.5, true, false, yes, no, null, ~, 2026-10-20, 2026-10-20T12:00:00Z]\n---\n"
+    expect(markdown_offenses(source)).to be_empty
+  end
+
+  it 'reports malformed YAML front matter explicitly' do
+    expect { markdown_offenses("---\ntitle: [hello\n---\n") }.to raise_error(
+      RuboCop::ValidationError, /Invalid YAML front matter/
+    )
+  end
+
+  it 'checks multiline plain values without checking trailing YAML comments' do
+    source = "---\ntitle: hello\n  wrold # typpo\n---\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.location.source] }).to eq(
+      [[3, 'wrold']]
+    )
+  end
+
+  it 'does not deserialize application objects in front matter' do
+    source = "---\ntitle: !ruby/object:Typpo {}\nlayout: !ruby/object:Typpo {}\n---\n"
+    expect(markdown_offenses(source)).to be_empty
+  end
+
+  it 'checks quoted strings even when their contents resemble YAML scalar types' do
+    source = "---\nvalues: ['yes', 'null', '2026-10-20', 'wrold']\n---\n"
+    expect(markdown_offenses(source).map { |offense| offense.location.source }).to eq(
+      %w[yes null wrold]
+    )
   end
 end

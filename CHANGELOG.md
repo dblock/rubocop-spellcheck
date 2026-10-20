@@ -2,6 +2,7 @@
 
 ### 0.1.0 (Next)
 
+* [#8](https://github.com/dblock/rubocop-spellcheck/pull/8): Check YAML front matter string values recursively with original source locations and grouped Markdown settings - [@dblock](https://github.com/dblock).
 * [#7](https://github.com/dblock/rubocop-spellcheck/pull/7): Separate lint, test, and package workflows with individual status badges - [@dblock](https://github.com/dblock).
 * [#5](https://github.com/dblock/rubocop-spellcheck/pull/5): Rename Spellcheck/Comments to Spellcheck/Spelling and check Markdown prose with original source locations and shared dictionaries - [@dblock](https://github.com/dblock).
 * [#4](https://github.com/dblock/rubocop-spellcheck/pull/4): Enable rubocop-rake and rubocop-rspec for development and disable Metrics/BlockLength - [@dblock](https://github.com/dblock).
