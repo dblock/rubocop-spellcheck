@@ -73,7 +73,7 @@ module RuboCop
         <<~MARKDOWN
           # Bundled English dictionary
 
-          `en.aff` and `en.dic` are unchanged copies of `en/spelling/index.aff` and `en/spelling/index.dic` from [kotoshu/dictionaries at commit #{revision}](#{REPOSITORY}/tree/#{revision}/en/spelling).
+          `en.aff` and `en.dic` are unchanged copies of `en/spelling/index.aff` and `en/spelling/index.dic` from [kotoshu/dictionaries at commit `#{revision}`](#{REPOSITORY}/tree/#{revision}/en/spelling).
 
           This is the SCOWL-derived American English Hunspell dictionary. Its upstream version, copyright, redistribution permissions, credits, and notices are reproduced in full in [LICENSE](LICENSE). The gem's MIT license does not replace these dictionary terms.
 

@@ -7,8 +7,8 @@ Gem::Specification.new do |spec|
   spec.version = RuboCop::Spellcheck::VERSION
   spec.authors = ['Daniel (dB.) Doubrovkine']
   spec.email = ['dblock@dblock.org']
-  spec.summary = 'Spellcheck Ruby comments with RuboCop and Kotoshu.'
-  spec.description = 'RuboCop spelling checks for Ruby comments, powered by Kotoshu with offline dictionaries.'
+  spec.summary = 'Spellcheck Ruby comments and Markdown with RuboCop.'
+  spec.description = 'RuboCop spelling checks for Ruby comments and Markdown prose, using offline dictionaries.'
   spec.homepage = 'https://github.com/dblock/rubocop-spellcheck'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.2'
@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['lib/**/*.rb', 'config/*.yml', 'data/**/*'].select { |path| File.file?(path) } +
                %w[README.md CHANGELOG.md LICENSE.txt]
   spec.require_paths = ['lib']
+  spec.add_dependency 'commonmarker', '~> 2.0'
   spec.add_dependency 'kotoshu', '~> 1.0.8'
   spec.add_dependency 'lint_roller', '~> 1.1'
   spec.add_dependency 'rubocop', '~> 1.72', '>= 1.72.1'

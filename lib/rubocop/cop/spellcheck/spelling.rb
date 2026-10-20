@@ -3,8 +3,8 @@
 module RuboCop
   module Cop
     module Spellcheck
-      # Checks comment prose without interpreting Ruby strings or identifiers.
-      class Comments < Base
+      # Checks Ruby comments and visible Markdown prose with shared dictionaries.
+      class Spelling < Base
         DIRECTIVE = /
           \A\#\s*(?:!|(?:rubocop|standard|coding|encoding|frozen_string_literal|
           warn_indent|shareable_constant_value|typed)\s*:)|\A\#.*-\*-\s*(?:coding|encoding):
@@ -17,6 +17,14 @@ module RuboCop
             next if DIRECTIVE.match?(comment.text)
 
             check_comment(comment)
+          end
+        end
+
+        def on_other_file
+          return unless RuboCop::Spellcheck::Markdown.file?(processed_source.path)
+
+          RuboCop::Spellcheck::Markdown.new(processed_source.buffer).each_span do |text, positions|
+            check_markdown_span(text, positions)
           end
         end
 
@@ -36,15 +44,30 @@ module RuboCop
         def check_comment(comment)
           checker.misspellings(prose(comment.text)).each do |word, position|
             first = comment.source_range.begin_pos + position
-            range = Parser::Source::Range.new(processed_source.buffer, first, first + word.length)
-            add_offense(range, message: spelling_message(word))
+            report_word(word, first, first + word.length)
           end
+        end
+
+        def check_markdown_span(text, positions)
+          checker.misspellings(mask_addresses(text)).each do |word, position|
+            next unless word.match?(/\p{L}/)
+
+            report_word(word, positions.fetch(position).first, positions.fetch(position + word.length - 1).last)
+          end
+        end
+
+        def report_word(word, first, last)
+          range = Parser::Source::Range.new(processed_source.buffer, first, last)
+          add_offense(range, message: spelling_message(word))
         end
 
         def prose(text)
           # Preserve character offsets while removing non-prose addresses and block delimiters.
+          mask_addresses(text).gsub(/^=(?:begin|end)\b[^\n]*/) { |marker| ' ' * marker.length }
+        end
+
+        def mask_addresses(text)
           text.gsub(ADDRESS) { |address| ' ' * address.length }
-              .gsub(/^=(?:begin|end)\b[^\n]*/) { |marker| ' ' * marker.length }
         end
 
         def spelling_message(word)
