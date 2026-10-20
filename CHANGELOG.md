@@ -2,6 +2,7 @@
 
 ### 0.1.1 (Next)
 
+* [#14](https://github.com/dblock/rubocop-spellcheck/pull/14): Reuse loaded dictionaries and word verdicts across file investigations instead of rebuilding them for every file - [@dblock](https://github.com/dblock).
 * Your contribution here.
 
 ### 0.1.0 (2026/10/20)

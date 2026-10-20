@@ -12,6 +12,10 @@ module RuboCop
         /x
         ADDRESS = %r{(?:https?://|www\.)[^\s<>]+|[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}}
 
+        def self.support_multiple_source?
+          true
+        end
+
         def on_new_investigation
           super
           if RuboCop::Spellcheck::Markdown.file?(processed_source.path)
