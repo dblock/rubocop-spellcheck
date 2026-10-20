@@ -2,6 +2,7 @@
 
 ### 0.1.0 (Next)
 
+* [#7](https://github.com/dblock/rubocop-spellcheck/pull/7): Separate lint, test, and package workflows with individual status badges - [@dblock](https://github.com/dblock).
 * [#5](https://github.com/dblock/rubocop-spellcheck/pull/5): Rename Spellcheck/Comments to Spellcheck/Spelling and check Markdown prose with original source locations and shared dictionaries - [@dblock](https://github.com/dblock).
 * [#4](https://github.com/dblock/rubocop-spellcheck/pull/4): Enable rubocop-rake and rubocop-rspec for development and disable Metrics/BlockLength - [@dblock](https://github.com/dblock).
 * [#3](https://github.com/dblock/rubocop-spellcheck/pull/3): Enable this gem's own Spellcheck/Comments cop in repository linting with a project vocabulary file - [@dblock](https://github.com/dblock).
