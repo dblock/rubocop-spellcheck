@@ -1,6 +1,6 @@
 Spellcheck:
-  Language: en
-  DictionaryFiles: []
+  # Null selects the packaged English dictionary; an explicit map replaces it.
+  DictionaryFiles:
 
 Spellcheck/Comments:
   Description: Check spelling in Ruby comments using Kotoshu.
