@@ -1,6 +1,8 @@
 # rubocop-spellcheck
 
-[![Ruby](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml)
+[![Tests](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml)
+[![Lint](https://github.com/dblock/rubocop-spellcheck/actions/workflows/lint.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/lint.yml)
+[![Package](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml)
 [![Gem Version](https://badge.fury.io/rb/rubocop-spellcheck.svg)](https://rubygems.org/gems/rubocop-spellcheck)
 
 Spellcheck Ruby comments and Markdown prose with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
