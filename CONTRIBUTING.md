@@ -23,4 +23,12 @@ Add focused regression specs for changed behavior, including precise offense ran
 
 The bundled English dictionary and its full license must ship together. See [data/en/README.md](data/en/README.md) for provenance and update instructions. DictionaryFiles maps language codes to explicit gem-relative or local Hunspell/text files, never a Kotoshu-managed resource cache.
 
+## Resource maintenance
+
+Run `ruby script/update_resources.rb` to update both the Kotoshu dependency to the latest stable RubyGems release and the bundled English dictionary/license to a single pinned revision of `kotoshu/dictionaries`' `v1` branch. The script needs network access, but linting and tests do not. It leaves files untouched when the upstream contents and dependency are unchanged; all downloads complete before any changes are written.
+
+The **Update spelling resources** workflow runs monthly and supports manual dispatch. Changes are validated on the minimum supported Ruby with RSpec, RuboCop, and a gem build before [peter-evans/create-pull-request](https://github.com/peter-evans/create-pull-request) opens or refreshes one `maintenance/spelling-resources` PR. The action is pinned to an immutable release commit and manages branch updates and commits. Nothing is automatically merged. Review dictionary behavior, the complete license diff, upstream provenance, and Kotoshu compatibility before merging.
+
+Enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. By default the workflow uses `GITHUB_TOKEN`; GitHub does not trigger additional push/PR workflows for changes made with that token, so the maintenance workflow validates changes itself and links its run in the PR. To also trigger the normal PR matrix and Danger, configure a narrowly scoped `MAINTENANCE_TOKEN` secret with repository contents and pull-request write access. A token cannot bypass an organization policy that prohibits automated PR creation.
+
 Run `bundle exec rake` before committing. Do not introduce implicit resource downloads or silently skip unavailable dictionaries. Do not publish a gem or tag a release without maintainer authorization.

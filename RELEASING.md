@@ -4,6 +4,8 @@ Release only with explicit maintainer authorization. Release preparation happens
 
 ## Prepare
 
+Check the latest **Update spelling resources** workflow and any open maintenance PR. Optionally dispatch the workflow before a release, then review and merge its dictionary/license and Kotoshu updates if desired. Never fetch or update resources implicitly during the release or gem build: package the exact reviewed files and dependency declaration already committed.
+
 Update `master` with a fast-forward pull. Run `bundle exec rake` and confirm the latest GitHub Actions checks pass. Set the release version in `lib/rubocop/spellcheck/version.rb`, date its CHANGELOG heading as `YYYY/MM/DD`, and remove the contribution placeholder from that release.
 
 Commit and push the preparation changes, wait for green CI, then build and inspect the package:

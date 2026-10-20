@@ -11,4 +11,4 @@ SHA-256 checksums of the unmodified upstream files:
 f0b1a234bd178bdd01875b2a392a9647f888b8fe879f79c52aae62c2759b3647  en.dic
 ```
 
-To update, choose a specific upstream commit, review its license and dictionary changes, replace both files and the full upstream license together, update this provenance and checksums, and run the gem's tests and package build. Dictionary updates should be intentional gem changes, not downloads during linting.
+Run `ruby script/update_resources.rb` to check the latest upstream dictionary and stable Kotoshu release, then review the dictionary and full license diff before merging. The monthly/manual [**Update spelling resources** workflow](../../.github/workflows/update-resources.yml) opens a maintenance PR for these changes. Dictionary updates should be intentional gem changes, not downloads during linting.
