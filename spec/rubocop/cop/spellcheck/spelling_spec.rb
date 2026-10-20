@@ -61,6 +61,33 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     RUBY
   end
 
+  it 'loads dictionaries once across Ruby, Markdown, and text investigations without retaining offenses' do
+    allow(RuboCop::Spellcheck::Checker).to receive(:new).and_call_original
+    team = RuboCop::Cop::Team.new([cop], config)
+    reports = { 'one.rb' => "# wrold\n", 'two.md' => "hello\n", 'three.txt' => "hello wrold\n" }.map do |path, source|
+      team.investigate(parse_source(source, path)).offenses
+    end
+    expect(reports.map { |offenses| offenses.map { |offense| [offense.location.source, offense.column] } }).to eq(
+      [[['wrold', 2]], [], [['wrold', 6]]]
+    )
+    expect(RuboCop::Spellcheck::Checker).to have_received(:new).once
+  end
+
+  it 'loads changed dictionary content for a new team rather than sharing stale verdicts' do
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, 'words.txt')
+      config['Spellcheck']['DictionaryFiles'] = { 'en' => [path] }
+      File.write(path, "hello\n")
+      first = RuboCop::Cop::Team.mobilize([described_class], config)
+      before = first.external_dependency_checksum
+      expect(first.investigate(parse_source("# wrold\n")).offenses.size).to eq(1)
+      File.write(path, "wrold\n")
+      second = RuboCop::Cop::Team.mobilize([described_class], config)
+      expect(second.external_dependency_checksum).not_to eq(before)
+      expect(second.investigate(parse_source("# wrold\n")).offenses).to be_empty
+    end
+  end
+
   it 'checks block comments without checking their delimiters' do
     expect_offense(<<~RUBY)
       =begin
