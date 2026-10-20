@@ -23,6 +23,13 @@ module RuboCop
 
       attr_reader :checksum
 
+      def dictionary_file?(path)
+        return false unless File.exist?(path)
+
+        expanded = File.realpath(path)
+        @paths.any? { |dictionary| File.realpath(dictionary) == expanded }
+      end
+
       def misspellings(text)
         @checkers.flat_map { |checker| checker.tokenize(text) }.uniq
                  .sort_by(&:last).reject { |word, _position| correct?(word) }

@@ -6,9 +6,10 @@ AllCops:
   Include:
     - "**/*.md"
     - "**/*.markdown"
+    - "**/*.txt"
 
 Spellcheck/Spelling:
-  Description: Check spelling in Ruby comments and Markdown prose.
+  Description: Check spelling in Ruby comments, Markdown prose, and plain text.
   Enabled: true
   Markdown:
     FrontMatter:

@@ -5,7 +5,7 @@
 [![Package](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml)
 [![Gem Version](https://badge.fury.io/rb/rubocop-spellcheck.svg)](https://rubygems.org/gems/rubocop-spellcheck)
 
-Spellcheck Ruby comments and Markdown prose with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
+Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
 
 ## Table of Contents
 
@@ -129,6 +129,8 @@ Spellcheck/Spelling:
 
 Before the first release, `Spellcheck/Comments` was renamed to `Spellcheck/Spelling`. Update any existing cop-specific configuration, `--only` arguments, or Ruby suppression directives to use the new name.
 
+Plain `.txt` files are also discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are still ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
+
 ## Configuration
 
 ### Dictionary files
@@ -213,7 +215,7 @@ Spellcheck/Spelling:
 
 ## Scope and limitations
 
-The first release checks Ruby comments, including trailing comments, and Markdown prose. Ruby checks skip shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations. It does not inspect Ruby strings, identifiers, symbols, or regular expressions.
+The first release checks Ruby comments, including trailing comments, Markdown prose, and plain `.txt` files. Ruby checks skip shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations. It does not inspect Ruby strings, identifiers, symbols, or regular expressions.
 
 Other comment content, including embedded code and documentation tags, is treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
 
