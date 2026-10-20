@@ -83,6 +83,7 @@ module RuboCop
         end
 
         def check_markdown_span(text, positions)
+          text = text.sub(/\A['’]s\b/, '  ')
           checker.misspellings(mask_addresses(text)).each do |word, position|
             next unless word.match?(/\p{L}/)
 

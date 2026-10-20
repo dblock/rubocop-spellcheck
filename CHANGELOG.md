@@ -2,6 +2,7 @@
 
 ### 0.1.0 (Next)
 
+* [#9](https://github.com/dblock/rubocop-spellcheck/pull/9): Preserve English accented words and ignore quoted delimiters, numeric identifiers, and Liquid template expressions in Markdown - [@dblock](https://github.com/dblock).
 * [#6](https://github.com/dblock/rubocop-spellcheck/pull/6): Include plain text files by default while excluding configured dictionaries and bundled dictionary resources from spelling checks - [@dblock](https://github.com/dblock).
 * [#8](https://github.com/dblock/rubocop-spellcheck/pull/8): Check YAML front matter string values recursively with original source locations and grouped Markdown settings - [@dblock](https://github.com/dblock).
 * [#7](https://github.com/dblock/rubocop-spellcheck/pull/7): Separate lint, test, and package workflows with individual status badges - [@dblock](https://github.com/dblock).

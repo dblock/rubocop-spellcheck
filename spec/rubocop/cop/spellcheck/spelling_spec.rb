@@ -166,6 +166,17 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     _investigate(cop, parse_source(source, path))
   end
 
+  it 'skips Liquid expressions and recognizes template-based link destinations' do
+    source = "![world]({{ site.url }}/typpo.png)\n{% include typpo %} 😀 wrold\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[2, 22, 'wrold']]
+    )
+  end
+
+  it 'does not treat quote marks or formatted possessive suffixes as misspelled words' do
+    expect(markdown_offenses("'hello' [world](url)'s `world`'s\n")).to be_empty
+  end
+
   it 'checks string values without checking keys or strongly typed metadata' do
     source = "---\ntitle: 😀 wrold\ncount: 42\ndescription: 'hello wrold'\nsummary: world\n---\nhello\n"
     expect(markdown_offenses(source).map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(

@@ -9,6 +9,7 @@ module RuboCop
       EXTENSIONS = %w[.md .markdown].freeze
       ENTITY = /&(?:\#x[0-9a-f]+|\#\d+|[a-z][a-z0-9]+);/i
       PIECE = /#{ENTITY}|\\[[:punct:]]|./m
+      LIQUID = /\{\{.*?\}\}|\{%.*?%\}/m
 
       def self.file?(path)
         path && EXTENSIONS.include?(File.extname(path).downcase)
@@ -22,7 +23,7 @@ module RuboCop
       def each_span
         return enum_for(__method__) unless block_given?
 
-        document = Commonmarker.parse(without_front_matter, options: {
+        document = Commonmarker.parse(parser_source, options: {
                                         parse: { smart: false },
                                         extension: { shortcodes: false, footnotes: true }
                                       })
@@ -35,6 +36,12 @@ module RuboCop
       end
 
       private
+
+      def parser_source
+        without_front_matter.gsub(LIQUID) do |expression|
+          expression.gsub(/[^\n]/) { |character| 'x' * character.bytesize }
+        end
+      end
 
       def without_front_matter
         @buffer.source.sub(/\A(?:\uFEFF)?---[ \t]*\n.*?^(?:---|\.\.\.)[ \t]*(?:\n|\z)/m) do |header|
@@ -55,6 +62,7 @@ module RuboCop
       end
 
       def decode_text(raw, first)
+        raw = without_liquid(raw)
         text = +''
         positions = []
         raw.to_enum(:scan, PIECE).each do
@@ -64,6 +72,10 @@ module RuboCop
           decoded.length.times { positions << [first + match.begin(0), first + match.end(0)] }
         end
         [text, positions]
+      end
+
+      def without_liquid(raw)
+        raw.gsub(LIQUID) { |expression| expression.gsub(/[^\n]/, ' ') }
       end
 
       def decode(piece)
