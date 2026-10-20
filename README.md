@@ -129,6 +129,8 @@ Spellcheck/Spelling:
 
 Before the first release, `Spellcheck/Comments` was renamed to `Spellcheck/Spelling`. Update any existing cop-specific configuration, `--only` arguments, or Ruby suppression directives to use the new name.
 
+Liquid output expressions and tags are ignored, including expressions inside link destinations. English words retain accented letters and internal apostrophes; surrounding quotation marks and numeric identifiers such as commit hashes and ordinals are not checked.
+
 Plain `.txt` files are also discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are still ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
 
 ## Configuration

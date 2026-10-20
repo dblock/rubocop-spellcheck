@@ -3,6 +3,14 @@
 RSpec.describe RuboCop::Spellcheck::Checker do
   let(:root) { File.expand_path('../../fixtures', __dir__) }
 
+  it 'keeps accented English words whole and ignores numeric identifiers' do
+    checker = described_class.new
+    words = checker.misspellings("café Pokémon 'wrold' 4th 0x860c4604fe1125ea43")
+    expect(words.map(&:first)).to include('wrold')
+    expect(words.map(&:first)).not_to include('caf', 'Pok', 'mon', "'wrold'", 'th', 'fe')
+    expect(words.assoc('wrold').last).to eq(14)
+  end
+
   def checker(files = { 'en' => ['en.dic'] }, directory = root)
     described_class.new(dictionary_files: files, base_directory: directory)
   end

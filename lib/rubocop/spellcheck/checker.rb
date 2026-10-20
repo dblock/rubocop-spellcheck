@@ -9,6 +9,7 @@ module RuboCop
     # Checks words against explicitly selected, local language dictionaries.
     class Checker
       DEFAULT_FILES = { 'en' => ['gem:rubocop-spellcheck/data/en/en.dic'].freeze }.freeze
+      ENGLISH_WORD = /(?<![\p{L}\p{M}\p{N}_])[\p{Latin}\p{M}]+(?:['’][\p{Latin}\p{M}]+)*(?![\p{L}\p{M}\p{N}_])/
 
       def initialize(dictionary_files: nil, base_directory: Dir.pwd)
         @base_directory = base_directory
@@ -26,12 +27,11 @@ module RuboCop
       def dictionary_file?(path)
         return false unless File.exist?(path)
 
-        expanded = File.realpath(path)
-        @paths.any? { |dictionary| File.realpath(dictionary) == expanded }
+        @paths.any? { |dictionary| File.identical?(dictionary, path) }
       end
 
       def misspellings(text)
-        @checkers.flat_map { |checker| checker.tokenize(text) }.uniq
+        @checkers.flat_map { |checker| tokens(checker, text) }.uniq
                  .sort_by(&:last).reject { |word, _position| correct?(word) }
       end
 
@@ -42,6 +42,12 @@ module RuboCop
       end
 
       private
+
+      def tokens(checker, text)
+        return checker.tokenize(text) unless checker.config.language.match?(/\Aen(?:[-_]|\z)/i)
+
+        text.to_enum(:scan, ENGLISH_WORD).map { [Regexp.last_match[0], Regexp.last_match.begin(0)] }
+      end
 
       def build_checkers(files)
         validate!(files)
