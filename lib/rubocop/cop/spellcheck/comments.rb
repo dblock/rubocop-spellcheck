@@ -28,18 +28,9 @@ module RuboCop
 
         def checker
           @checker ||= RuboCop::Spellcheck::Checker.new(
-            language: cop_config['Language'],
-            dictionary_files: dictionary_files
+            dictionary_files: cop_config['DictionaryFiles'],
+            base_directory: config.base_dir_for_path_parameters
           )
-        end
-
-        def dictionary_files
-          files = cop_config['DictionaryFiles']
-          return files unless files.is_a?(Array)
-
-          files.map do |path|
-            path.is_a?(String) && !path.empty? ? File.expand_path(path, config.base_dir_for_path_parameters) : path
-          end
         end
 
         def check_comment(comment)

@@ -20,7 +20,8 @@ Gem::Specification.new do |spec|
     'rubygems_mfa_required' => 'true',
     'default_lint_roller_plugin' => 'RuboCop::Spellcheck::Plugin'
   }
-  spec.files = Dir['lib/**/*.rb', 'config/*.yml'] + %w[README.md CHANGELOG.md LICENSE.txt]
+  spec.files = Dir['lib/**/*.rb', 'config/*.yml', 'data/**/*'].select { |path| File.file?(path) } +
+               %w[README.md CHANGELOG.md LICENSE.txt]
   spec.require_paths = ['lib']
   spec.add_dependency 'kotoshu', '~> 1.0.8'
   spec.add_dependency 'lint_roller', '~> 1.1'

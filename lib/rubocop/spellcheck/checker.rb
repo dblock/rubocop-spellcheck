@@ -2,76 +2,124 @@
 
 require 'digest'
 require 'kotoshu'
+require 'pathname'
 
 module RuboCop
   module Spellcheck
-    # Owns an isolated, cache-only Kotoshu checker and project vocabulary.
+    # Checks words against explicitly selected, local language dictionaries.
     class Checker
-      def initialize(language:, dictionary_files:)
-        validate!(language, dictionary_files)
-        @words = dictionary_files.flat_map { |path| read_words(path) }.to_set
-        @checker = build_checker(language)
+      DEFAULT_FILES = { 'en' => ['gem:rubocop-spellcheck/data/en/en.dic'].freeze }.freeze
+
+      def initialize(dictionary_files: nil, base_directory: Dir.pwd)
+        @base_directory = base_directory
+        @paths = []
+        @checkers = build_checkers(dictionary_files.nil? ? DEFAULT_FILES : dictionary_files)
         @verdicts = {}
         @suggestions = {}
-        @checksum = fingerprint(@checker.dictionary, dictionary_files)
+        @checksum = Digest::SHA256.hexdigest(
+          [Kotoshu::VERSION, *@paths.map { |path| Digest::SHA256.file(path).hexdigest }].join("\0")
+        )
       end
 
       attr_reader :checksum
 
       def misspellings(text)
-        @checker.tokenize(text).reject { |word, _position| correct?(word) }
+        @checkers.flat_map { |checker| checker.tokenize(text) }.uniq
+                 .sort_by(&:last).reject { |word, _position| correct?(word) }
       end
 
       def suggestions(word)
-        @suggestions[word] ||= @checker.suggest(word, max_suggestions: 3).to_words.first(3)
+        @suggestions[word] ||= @checkers.flat_map do |checker|
+          checker.suggest(word, max_suggestions: 3).to_words
+        end.uniq.first(3)
       end
 
       private
 
-      def build_checker(language)
-        bundle = Kotoshu::ResourceManager.resolve(language: language, want: [:spelling])
+      def build_checkers(files)
+        validate!(files)
+        files.flat_map do |language, paths|
+          paths.map { |path| build_checker(language, resolve_path(path)) }
+        end
+      end
+
+      def validate!(files)
+        valid = files.is_a?(Hash) && !files.empty? &&
+                files.all? { |language, paths| valid_language?(language) && valid_paths?(paths) }
+        return if valid
+
+        raise RuboCop::ValidationError, 'Spellcheck/DictionaryFiles must map language codes to nonempty lists of paths.'
+      end
+
+      def valid_language?(language)
+        language.is_a?(String) && language.match?(/\A[a-zA-Z]+(?:[-_][a-zA-Z0-9]+)*\z/)
+      end
+
+      def valid_paths?(paths)
+        paths.is_a?(Array) && !paths.empty? && paths.all? { |path| path.is_a?(String) && !path.empty? }
+      end
+
+      def resolve_path(path)
+        return File.expand_path(path, @base_directory) unless path.start_with?('gem:')
+
+        match = %r{\Agem:([^/]+)/(.+)\z}.match(path)
+        raise RuboCop::ValidationError, "Invalid gem dictionary path: #{path}" unless match
+
+        root = Gem::Specification.find_by_name(match[1]).full_gem_path
+        resolved = File.expand_path(match[2], root)
+        raise RuboCop::ValidationError, "Path escapes gem: #{path}" unless resolved.start_with?("#{root}/")
+
+        resolved
+      rescue Gem::LoadError => e
+        raise RuboCop::ValidationError, "Cannot resolve dictionary #{path}: #{e.message}"
+      end
+
+      def build_checker(language, path)
+        dictionary = load_dictionary(language, path)
         settings = Kotoshu::Configuration.new(
           language: language, offline: true, personal_dictionary: false, backend: 'ruby'
         )
-        Kotoshu::Spellchecker.new(resource_bundle: bundle, config: settings)
-      rescue Kotoshu::ResourceNotSetupError => e
-        raise RuboCop::ValidationError,
-              "#{e.message}\nRun `bundle exec kotoshu setup #{language} --want spelling` before RuboCop."
+        Kotoshu::Spellchecker.new(dictionary: dictionary, config: settings)
       end
 
-      def validate!(language, files)
-        unless language.is_a?(String) && language.match?(/\A[a-zA-Z]+(?:[-_][a-zA-Z0-9]+)*\z/)
-          raise RuboCop::ValidationError, 'Spellcheck/Language must be a language code, such as en.'
+      def load_dictionary(language, path)
+        case File.extname(path)
+        when '.dic'
+          hunspell_dictionary(language, path)
+        when '.txt'
+          words = read_file(path).lines.filter_map { |line| dictionary_word(line, path) }
+          Kotoshu::Dictionary::PlainText.from_words(words, language_code: language)
+        else
+          raise RuboCop::ValidationError, "Expected a .dic or .txt dictionary: #{path}"
         end
-        return if files.is_a?(Array) && files.all? { |path| path.is_a?(String) && !path.empty? }
-
-        raise RuboCop::ValidationError, 'Spellcheck/DictionaryFiles must be an array of file paths.'
       end
 
-      def read_words(path)
-        File.readlines(path, chomp: true, encoding: 'UTF-8').filter_map do |line|
-          word = line.strip
-          next if word.empty? || word.start_with?('#')
-          raise RuboCop::ValidationError, "Expected one word per line in #{path}: #{word.inspect}" if word.match?(/\s/)
+      def hunspell_dictionary(language, path)
+        aff = path.sub(/\.dic\z/, '.aff')
+        [path, aff].each { |file| read_file(file) }
+        Kotoshu::Dictionary::Hunspell.new(dic_path: path, aff_path: aff, language_code: language)
+      end
 
-          word.downcase
-        end
+      def read_file(path)
+        content = File.read(path, encoding: 'UTF-8')
+        @paths << path
+        content
       rescue SystemCallError => e
         raise RuboCop::ValidationError, "Cannot read spelling dictionary #{path}: #{e.message}"
       end
 
-      def correct?(word)
-        return true if @words.include?(word.downcase)
-        return @verdicts[word] if @verdicts.key?(word)
+      def dictionary_word(line, path)
+        word = line.strip
+        return if word.empty? || word.start_with?('#')
+        raise RuboCop::ValidationError, "Expected one word per line in #{path}: #{word.inspect}" if word.match?(/\s/)
 
-        @verdicts[word] = @checker.correct?(word)
+        word
       end
 
-      def fingerprint(dictionary, files)
-        paths = [dictionary.dic_path, dictionary.aff_path, *files]
-        Digest::SHA256.hexdigest(
-          [Kotoshu::VERSION, *paths.map { |path| Digest::SHA256.file(path).hexdigest }].join("\0")
-        )
+      def correct?(word)
+        return @verdicts[word] if @verdicts.key?(word)
+
+        @verdicts[word] = @checkers.any? { |checker| checker.correct?(word) }
       end
     end
   end

@@ -9,11 +9,6 @@ RSpec.describe 'RuboCop plugin integration' do
       dir = File.realpath(dir)
       env = %w[CACHE CONFIG DATA].to_h { |kind| ["KOTOSHU_#{kind}_PATH", File.join(dir, kind.downcase)] }
       env['KOTOSHU_OFFLINE'] = '1'
-      root = File.expand_path('fixtures', __dir__)
-      setup = ['kotoshu', 'setup', 'en', '--aff', File.join(root, 'en.aff'), '--dic', File.join(root, 'en.dic')]
-      output, status = Open3.capture2e(env, *setup)
-      expect(status.success?).to be(true), output
-
       File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
         plugins:
           - rubocop-spellcheck
@@ -22,7 +17,9 @@ RSpec.describe 'RuboCop plugin integration' do
           SuggestExtensions: false
         Spellcheck:
           DictionaryFiles:
-            - words.txt
+            en:
+              - gem:rubocop-spellcheck/data/en/en.dic
+              - words.txt
       YAML
       File.write(File.join(dir, 'words.txt'), '')
       File.write(File.join(dir, 'example.rb'), "# hello wrold\n")
@@ -35,6 +32,7 @@ RSpec.describe 'RuboCop plugin integration' do
       second, errors, status = Open3.capture3(env, *command, chdir: dir)
       expect(status.success?).to be(true), "#{second}\n#{errors}"
       expect(JSON.parse(second).fetch('summary').fetch('offense_count')).to eq(0)
+      expect(Dir.glob(File.join(dir, 'cache', '**', '*')).select { |path| File.file?(path) }).to be_empty
     end
   end
 end

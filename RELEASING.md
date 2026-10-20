@@ -13,7 +13,7 @@ bundle exec rake build
 gem specification pkg/rubocop-spellcheck-0.1.0.gem files
 ```
 
-Confirm the package contains only runtime code, defaults, README, CHANGELOG, and license.
+Confirm the package contains only runtime code, defaults, README, CHANGELOG, license, and the bundled English dictionary with its full license and provenance.
 
 ## Publish
 

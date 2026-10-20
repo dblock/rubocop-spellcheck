@@ -3,14 +3,13 @@
 RSpec.describe RuboCop::Cop::Spellcheck::Comments, :config do
   let(:config) do
     RuboCop::Config.new(
-      'Spellcheck' => { 'Language' => 'en', 'DictionaryFiles' => [] },
+      'Spellcheck' => { 'DictionaryFiles' => { 'en' => [File.expand_path('../../../fixtures/en.dic', __dir__)] } },
       'Spellcheck/Comments' => { 'Enabled' => true }
     )
   end
 
   before do
-    allow(Kotoshu::ResourceManager).to receive(:resolve).with(language: 'en', want: [:spelling])
-                                                        .and_return(fixture_bundle)
+    allow(Kotoshu::ResourceManager).to receive(:resolve).and_call_original
   end
 
   it 'reports exactly the misspelled word with suggestions' do
@@ -91,8 +90,15 @@ RSpec.describe RuboCop::Cop::Spellcheck::Comments, :config do
     Dir.mktmpdir do |dir|
       File.write(File.join(dir, 'words.txt'), "wrold\n")
       allow(config).to receive(:base_dir_for_path_parameters).and_return(dir)
-      config['Spellcheck']['DictionaryFiles'] = ['words.txt']
+      config['Spellcheck']['DictionaryFiles']['en'] << 'words.txt'
       expect_no_offenses("# hello wrold\n")
     end
+  end
+
+  it 'resolves a primary override relative to the effective configuration file' do
+    root = File.expand_path('../../../fixtures', __dir__)
+    allow(config).to receive(:base_dir_for_path_parameters).and_return(root)
+    config['Spellcheck']['DictionaryFiles'] = { 'en' => ['en.dic'] }
+    expect_no_offenses("# hello world\n")
   end
 end
