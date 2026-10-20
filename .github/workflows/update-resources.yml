@@ -1,0 +1,77 @@
+name: Update spelling resources
+
+on:
+  schedule:
+    - cron: "17 8 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-spelling-resources
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.MAINTENANCE_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: master
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: Fetch latest dictionary and stable Kotoshu release
+        id: update
+        run: |
+          ruby script/update_resources.rb
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate updated dependencies, dictionary, and gem
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          bundle install
+          bundle exec rake
+          bundle exec rake build
+      - name: Add maintenance changelog entry
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          number=$(gh pr list --head maintenance/spelling-resources --base master --state open --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            next=$(gh api "repos/$GH_REPO/issues?state=all&per_page=1" --jq '.[0].number // 0')
+            number=$((next + 1))
+          fi
+          ruby -e 'p="CHANGELOG.md"; s=File.read(p); heading=s[/^### .+ \(Next\)$/] or abort "Missing Next changelog section"; s.sub!(heading, "#{heading}\n\n* [##{ARGV[0]}](https://github.com/#{ARGV[1]}/pull/#{ARGV[0]}): Update Kotoshu and bundled English spelling resources - [@github-actions](https://github.com/apps/github-actions)."); File.write(p,s)' "$number" "$GH_REPO"
+      - name: Open or refresh maintenance PR
+        if: steps.update.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.MAINTENANCE_TOKEN || github.token }}
+          base: master
+          branch: maintenance/spelling-resources
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          add-paths: |
+            data/en
+            rubocop-spellcheck.gemspec
+            CHANGELOG.md
+          commit-message: |
+            Update Kotoshu and bundled English dictionary
+
+            Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+          title: Update Kotoshu and bundled English dictionary
+          body: |
+            Automated dependency and dictionary refresh. Uses the latest stable Kotoshu release on RubyGems and English dictionary files plus their full license from a single pinned upstream revision. Review the license and provenance diff before merging.
+
+            Validation: bundle exec rake and gem build passed on Ruby 3.2. No automatic merge. Triggered by ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}.
+
+            This automation is maintained by AI on behalf of @dblock.
