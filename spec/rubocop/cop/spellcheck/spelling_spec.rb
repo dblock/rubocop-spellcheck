@@ -220,4 +220,18 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
       %w[yes null wrold]
     )
   end
+
+  it 'checks plain text literally, including Markdown-like code, with Unicode positions' do
+    source = "😀 hello `wrold`\nhttps://typpo.invalid user@typpo.invalid\n# wrold\n"
+    offenses = _investigate(cop, parse_source(source, 'example.txt'))
+    expect(offenses.map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[1, 9, 'wrold'], [3, 2, 'wrold']]
+    )
+  end
+
+  it 'excludes bundled resources even when explicitly named as targets' do
+    data = File.expand_path('../../../../data', __dir__)
+    expect(cop.relevant_file?(File.join(data, 'en/en.dic'))).to be(false)
+    expect(cop.relevant_file?(File.join(data, 'en/README.md'))).to be(false)
+  end
 end

@@ -3,8 +3,9 @@
 module RuboCop
   module Cop
     module Spellcheck
-      # Checks Ruby comments and visible Markdown prose with shared dictionaries.
+      # Checks Ruby comments, Markdown prose, and plain text with shared dictionaries.
       class Spelling < Base
+        BUNDLED_DATA = File.expand_path('../../../../data', __dir__).freeze
         DIRECTIVE = /
           \A\#\s*(?:!|(?:rubocop|standard|coding|encoding|frozen_string_literal|
           warn_indent|shareable_constant_value|typed)\s*:)|\A\#.*-\*-\s*(?:coding|encoding):
@@ -21,16 +22,21 @@ module RuboCop
         end
 
         def on_other_file
-          return unless RuboCop::Spellcheck::Markdown.file?(processed_source.path)
+          if RuboCop::Spellcheck::ProseSource.text_file?(processed_source.path)
+            check_text
+          elsif RuboCop::Spellcheck::Markdown.file?(processed_source.path)
+            check_markdown
+          else
+            super
+          end
+        end
 
-          if front_matter_enabled?
-            RuboCop::Spellcheck::FrontMatter.new(processed_source.buffer).each_span do |text, positions|
-              check_markdown_span(text, positions)
-            end
-          end
-          RuboCop::Spellcheck::Markdown.new(processed_source.buffer).each_span do |text, positions|
-            check_markdown_span(text, positions)
-          end
+        def relevant_file?(file)
+          return false unless super
+          return false if File.expand_path(file).start_with?("#{BUNDLED_DATA}/")
+          return true unless RuboCop::Spellcheck::ProseSource.text_file?(file)
+
+          !checker.dictionary_file?(file)
         end
 
         def external_dependency_checksum
@@ -41,6 +47,25 @@ module RuboCop
 
         def front_matter_enabled?
           cop_config.fetch('Markdown', {}).fetch('FrontMatter', {}).fetch('Enabled', true)
+        end
+
+        def check_markdown
+          if front_matter_enabled?
+            RuboCop::Spellcheck::FrontMatter.new(processed_source.buffer).each_span do |text, positions|
+              check_markdown_span(text, positions)
+            end
+          end
+          RuboCop::Spellcheck::Markdown.new(processed_source.buffer).each_span do |text, positions|
+            check_markdown_span(text, positions)
+          end
+        end
+
+        def check_text
+          checker.misspellings(mask_addresses(processed_source.buffer.source)).each do |word, position|
+            next unless word.match?(/\p{L}/)
+
+            report_word(word, position, position + word.length)
+          end
         end
 
         def checker

@@ -18,9 +18,11 @@ evans
 Kotoshu
 Kotoshu's
 macOS
+MERCHANTABILITY
 md
 multiline
 ONNX
+NONINFRINGEMENT
 PRs
 precompiled
 README
@@ -29,6 +31,7 @@ RSpec
 RubyGems
 SCOWL's
 SHA
+sublicense
 tokenization
 toolchain
 txt
