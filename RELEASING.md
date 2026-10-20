@@ -21,6 +21,8 @@ Confirm the package contains only runtime code, defaults, README, CHANGELOG, lic
 
 Publish the exact inspected package. Enter a fresh RubyGems MFA code when prompted; never put credentials or codes in source, logs, or documentation.
 
+For an assistant-driven release, request the MFA code through a hidden local prompt and pass it directly to the publishing process through `GEM_HOST_OTP_CODE`. Do not embed the code in command arguments or save it to a file. If a secure prompt is unavailable, have the maintainer run `gem push` interactively in their terminal.
+
 ```sh
 gem push pkg/rubocop-spellcheck-0.1.0.gem
 ```

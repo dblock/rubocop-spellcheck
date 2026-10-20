@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.1.1 (Next)
+
+* Your contribution here.
+
 ### 0.1.0 (2026/10/20)
 
 * [#12](https://github.com/dblock/rubocop-spellcheck/pull/12): Preserve Markdown parsing and use original prose buffers - [@dblock](https://github.com/dblock).
