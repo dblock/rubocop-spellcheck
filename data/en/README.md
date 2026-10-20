@@ -1,6 +1,6 @@
 # Bundled English dictionary
 
-`en.aff` and `en.dic` are unchanged copies of `en/spelling/index.aff` and `en/spelling/index.dic` from [kotoshu/dictionaries at commit 744120eb38a485a64c9185496c8422f66c491c05](https://github.com/kotoshu/dictionaries/tree/744120eb38a485a64c9185496c8422f66c491c05/en/spelling).
+`en.aff` and `en.dic` are unchanged copies of `en/spelling/index.aff` and `en/spelling/index.dic` from [kotoshu/dictionaries at commit `744120eb38a485a64c9185496c8422f66c491c05`](https://github.com/kotoshu/dictionaries/tree/744120eb38a485a64c9185496c8422f66c491c05/en/spelling).
 
 This is the SCOWL-derived American English Hunspell dictionary, version 2020.12.07 (size 60). Its upstream copyright, redistribution permissions, credits, and notices are reproduced in full in [LICENSE](LICENSE). The gem's MIT license does not replace these dictionary terms.
 

@@ -3,7 +3,7 @@
 [![Ruby](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml)
 [![Gem Version](https://badge.fury.io/rb/rubocop-spellcheck.svg)](https://rubygems.org/gems/rubocop-spellcheck)
 
-Spellcheck Ruby comments with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
+Spellcheck Ruby comments and Markdown prose with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Spellcheck Ruby comments with [RuboCop](https://rubocop.org/) and [Kotoshu](http
 
 ## Installation
 
-Requires Ruby 3.2 or newer and RuboCop 1.72.1 or newer (1.x). Kotoshu 1.0.x declares a Rust extension build; a working Rust toolchain may be required to install it. The extension uses Kotoshu's Ruby spelling backend, without ONNX models or a system Hunspell executable.
+Requires Ruby 3.2 or newer and RuboCop 1.72.1 or newer (1.x).
 
 Add to your `Gemfile`:
 
@@ -68,22 +68,55 @@ The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloa
 
 ## Usage
 
-`Spellcheck/Comments` is enabled by default:
+`Spellcheck/Spelling` is enabled by default:
 
 ```ruby
 # bad
-# Return the resutl.
+# The red brown fox jumsp over the lazy dog.
 
 # good
-# Return the result.
+# The red brown fox jumps over the lazy dog.
 ```
 
 ```sh
 bundle exec rubocop
-bundle exec rubocop --only Spellcheck/Comments
+bundle exec rubocop --only Spellcheck/Spelling
+```
+
+For example, given `example.rb`:
+
+```ruby
+# The red brown fox jumsp over the lazy dog.
+```
+
+Running `bundle exec rubocop --only Spellcheck/Spelling example.rb` reports:
+
+```text
+Inspecting 1 file
+C
+
+Offenses:
+
+example.rb:1:21: C: Spellcheck/Spelling: Misspelled word: jumsp. Did you mean jumps, jump, jumpy?
+# The red brown fox jumsp over the lazy dog.
+                    ^^^^^
+
+1 file inspected, 1 offense detected
 ```
 
 Each offense highlights the misspelled word and includes up to three suggestions when available. Spelling is ambiguous, so there is no autocorrection.
+
+The same cop discovers `.md` and `.markdown` files and checks their prose:
+
+```markdown
+# The red brown fox jumsp over the lazy dog.
+
+Check [the spelling](https://example.com) but not `code_identifiers`.
+```
+
+Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, HTML tags/comments and HTML blocks, and YAML front matter are skipped. URLs and email addresses are ignored in both formats. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
+
+Before the first release, `Spellcheck/Comments` was renamed to `Spellcheck/Spelling`. Update any existing cop-specific configuration, `--only` arguments, or Ruby suppression directives to use the new name.
 
 ## Configuration
 
@@ -104,7 +137,7 @@ Paths beginning with `gem:<gem-name>/` resolve relative to that installed gem's 
 
 Hunspell `.dic` files load their matching `.aff` file in the same directory with the same basename. Plain `.txt` files contain literal words, one per line, matched case-insensitively without automatic inflection. Blank lines and lines starting with `#` are ignored; phrases are rejected.
 
-Settings can also be overridden for `Spellcheck/Comments` using normal RuboCop department/cop configuration. RuboCop merges explicitly inherited hashes by its normal configuration rules; within an explicit map, arrays replace inherited arrays unless `inherit_mode` says otherwise. Kotoshu's personal dictionary is not consulted. Changes to any selected dictionary or affix file invalidate cached results.
+Settings can also be overridden for `Spellcheck/Spelling` using normal RuboCop department/cop configuration. RuboCop merges explicitly inherited hashes by its normal configuration rules; within an explicit map, arrays replace inherited arrays unless `inherit_mode` says otherwise. Kotoshu's personal dictionary is not consulted. Changes to any selected dictionary or affix file invalidate cached results.
 
 ### Adding project vocabulary
 
@@ -148,22 +181,32 @@ Both dictionaries participate in spelling checks. To check only German, omit the
 Use standard RuboCop exclusions and inline directives:
 
 ```yaml
-Spellcheck/Comments:
+Spellcheck/Spelling:
   Exclude:
     - spec/fixtures/**/*
 ```
 
 ```ruby
-# rubocop:disable Spellcheck/Comments
+# rubocop:disable Spellcheck/Spelling
 # Deliberately misspelled example: resutl.
-# rubocop:enable Spellcheck/Comments
+# rubocop:enable Spellcheck/Spelling
+```
+
+Ruby inline directives apply to comments; Markdown HTML comments are ignored, not interpreted as suppression directives. To check only one format, use standard file inclusion:
+
+```yaml
+Spellcheck/Spelling:
+  Include:
+    - "**/*.rb"
 ```
 
 ## Scope and limitations
 
-The first release checks Ruby comments only, including trailing comments. It skips shebangs, Ruby magic comments, RuboCop/Standard directives, Sorbet `typed:` declarations, HTTP(S)/`www` URLs, and email addresses. It does not inspect strings, identifiers, symbols, regular expressions, or Markdown files.
+The first release checks Ruby comments, including trailing comments, and Markdown prose. Ruby checks skip shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations. It does not inspect Ruby strings, identifiers, symbols, or regular expressions.
 
 Other comment content, including embedded code and documentation tags, is treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
+
+Kotoshu ships precompiled gems for macOS, Linux, and Windows. Building native dependencies from source on other platforms may require a Rust toolchain.
 
 ## Contributing
 

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe RuboCop::Cop::Spellcheck::Comments, :config do
+RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
   let(:config) do
     RuboCop::Config.new(
       'Spellcheck' => { 'DictionaryFiles' => { 'en' => [File.expand_path('../../../fixtures/en.dic', __dir__)] } },
-      'Spellcheck/Comments' => { 'Enabled' => true }
+      'Spellcheck/Spelling' => { 'Enabled' => true }
     )
   end
 
@@ -47,9 +47,9 @@ RSpec.describe RuboCop::Cop::Spellcheck::Comments, :config do
 
   it 'honors RuboCop inline suppression' do
     expect_no_offenses(<<~RUBY)
-      # rubocop:disable Spellcheck/Comments
+      # rubocop:disable Spellcheck/Spelling
       # hello wrold
-      # rubocop:enable Spellcheck/Comments
+      # rubocop:enable Spellcheck/Spelling
     RUBY
   end
 
@@ -100,5 +100,69 @@ RSpec.describe RuboCop::Cop::Spellcheck::Comments, :config do
     allow(config).to receive(:base_dir_for_path_parameters).and_return(root)
     config['Spellcheck']['DictionaryFiles'] = { 'en' => ['en.dic'] }
     expect_no_offenses("# hello world\n")
+  end
+
+  it 'checks headings and formatted link labels with original Unicode positions' do
+    offenses = markdown_offenses("# 😀 **wrold** [wrold](https://typpo.invalid)\n")
+    expect(offenses.map { |offense| [offense.location.source, offense.column] }).to eq(
+      [['wrold', 6], ['wrold', 15]]
+    )
+    expect(offenses.map(&:message).uniq).to eq(['Misspelled word: `wrold`. Did you mean `world`?'])
+  end
+
+  it 'checks lists, quotes, and table cells' do
+    source = "- wrold\n\n> wrold\n\n| hello |\n| ----- |\n| wrold |\n"
+    offenses = markdown_offenses(source, 'example.markdown')
+    expect(offenses.map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[1, 2, 'wrold'], [3, 2, 'wrold'], [7, 2, 'wrold']]
+    )
+  end
+
+  it 'checks image descriptions and footnote prose but not identifiers' do
+    source = "![wrold](typpo.png)\n\nhello[^typpo]\n\n[^typpo]: wrold\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.location.source] }).to eq(
+      [[1, 'wrold'], [5, 'wrold']]
+    )
+  end
+
+  it 'skips code blocks, inline code, destinations, and addresses' do
+    source = <<~MARKDOWN
+      hello `typpo` [world][typpo] <https://typpo.invalid> user@typpo.invalid
+
+      [typpo]: https://typpo.invalid "typpo"
+
+      ```ruby
+      # wrold
+      typpo(
+      ```
+
+          wrold
+    MARKDOWN
+    expect(markdown_offenses(source)).to be_empty
+  end
+
+  it 'skips front matter and HTML without treating standalone punctuation as words' do
+    source = <<~MARKDOWN
+      ---
+      typpo: wrold
+      ---
+      <!-- wrold -->
+
+      <div typpo="wrold">wrold</div>
+
+      hello <span typpo="wrold">world</span> [hello](url)'.
+    MARKDOWN
+    expect(markdown_offenses(source)).to be_empty
+  end
+
+  it 'maps decoded entities and escaped punctuation back to their full source ranges' do
+    offenses = markdown_offenses("hello &amp; wro&#108;d \\*wrold\\*\n")
+    expect(offenses.map { |offense| [offense.column, offense.location.source] }).to eq(
+      [[12, 'wro&#108;d'], [25, 'wrold']]
+    )
+  end
+
+  def markdown_offenses(source, path = 'example.md')
+    _investigate(cop, parse_source(source, path))
   end
 end
