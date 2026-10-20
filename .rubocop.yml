@@ -1,0 +1,17 @@
+AllCops:
+  TargetRubyVersion: 3.2
+  NewCops: enable
+
+Naming/FileName:
+  Exclude:
+    - lib/rubocop-spellcheck.rb
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*.rb
+    - "*.gemspec"
+
+Style/Documentation:
+  Exclude:
+    - lib/rubocop/spellcheck/version.rb
+    - spec/**/*.rb

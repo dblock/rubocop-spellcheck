@@ -1,0 +1,8 @@
+Spellcheck:
+  Language: en
+  DictionaryFiles: []
+
+Spellcheck/Comments:
+  Description: Check spelling in Ruby comments using Kotoshu.
+  Enabled: true
+  VersionAdded: "0.1"
