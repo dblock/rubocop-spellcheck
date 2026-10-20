@@ -13,6 +13,8 @@ The default task runs RSpec and RuboCop. Unit tests use tiny local Hunspell fixt
 
 The repository enables its own `Spellcheck/Comments` cop in `.rubocop.yml`, so the default task and CI lint comments using bundled English plus `.spellcheck.txt` for project vocabulary.
 
+Development linting also enables `rubocop-rake` and `rubocop-rspec`. `Metrics/BlockLength` is disabled.
+
 For manual checks against a real dictionary:
 
 ```sh
