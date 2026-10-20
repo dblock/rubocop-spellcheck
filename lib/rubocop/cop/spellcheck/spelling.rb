@@ -14,10 +14,14 @@ module RuboCop
 
         def on_new_investigation
           super
-          processed_source.comments.each do |comment|
-            next if DIRECTIVE.match?(comment.text)
+          if RuboCop::Spellcheck::Markdown.file?(processed_source.path)
+            check_markdown
+          else
+            processed_source.comments.each do |comment|
+              next if DIRECTIVE.match?(comment.text)
 
-            check_comment(comment)
+              check_comment(comment)
+            end
           end
         end
 
@@ -51,11 +55,11 @@ module RuboCop
 
         def check_markdown
           if front_matter_enabled?
-            RuboCop::Spellcheck::FrontMatter.new(processed_source.buffer).each_span do |text, positions|
+            RuboCop::Spellcheck::FrontMatter.new(prose_buffer).each_span do |text, positions|
               check_markdown_span(text, positions)
             end
           end
-          RuboCop::Spellcheck::Markdown.new(processed_source.buffer).each_span do |text, positions|
+          RuboCop::Spellcheck::Markdown.new(prose_buffer).each_span do |text, positions|
             check_markdown_span(text, positions)
           end
         end
@@ -92,8 +96,17 @@ module RuboCop
         end
 
         def report_word(word, first, last)
-          range = Parser::Source::Range.new(processed_source.buffer, first, last)
+          range = Parser::Source::Range.new(prose_buffer, first, last)
+          range = markdown_document.processed_range(range) if markdown_document
           add_offense(range, message: spelling_message(word))
+        end
+
+        def markdown_document
+          processed_source.markdown_document if processed_source.respond_to?(:markdown_document)
+        end
+
+        def prose_buffer
+          markdown_document ? markdown_document.buffer : processed_source.buffer
         end
 
         def prose(text)
