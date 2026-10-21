@@ -23,6 +23,10 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     expect(offenses('wrold = "😀 wrold"')).to eq([[1, 11, 'wrold']])
   end
 
+  it 'ignores the implicit filename string while still checking literal strings' do
+    expect(offenses("hello = __FILE__; world = 'wrold'")).to eq([[1, 27, 'wrold']])
+  end
+
   it 'splits snake case, camel case, acronym boundaries, sigils, and digits at each use' do
     source = "@hello_wrold = HelloWrold2WROLD\n@@wrold = $wrold\nhello.wrold!\n"
     expect(offenses(source)).to eq(
