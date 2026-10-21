@@ -19,6 +19,22 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     RUBY
   end
 
+  it 'reports vocabulary-generation offenses without computing suggestions or corrections' do
+    cop = described_class.new(config, auto_gen_config: true)
+    checker = nil
+    allow(Kotoshu::Spellchecker).to receive(:new).and_wrap_original do |original, **arguments|
+      checker = original.call(**arguments)
+      allow(checker).to receive(:suggest).and_call_original
+      checker
+    end
+
+    offenses = _investigate(cop, parse_source('# hello wrold'))
+
+    expect(offenses.map(&:message)).to eq(['Misspelled word: `wrold`.'])
+    expect(offenses.map { |offense| offense.location.source }).to eq(['wrold'])
+    expect(checker).not_to have_received(:suggest)
+  end
+
   it 'preserves offsets after multibyte characters and ignored addresses' do
     expect_offense(<<~RUBY)
       # 😀 https://example.invalid/typpo hello wrold
