@@ -44,9 +44,10 @@ module RuboCop
       HEADER = /\A(?:\uFEFF)?---[ \t]*\n.*?^(?:---|\.\.\.)[ \t]*(?:\n|\z)/m
       ESCAPE = /\\(?:U[0-9a-fA-F]{8}|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|.)/m
 
-      def initialize(buffer)
+      def initialize(buffer, config: {})
         @buffer = buffer
         @scanner = Psych::ScalarScanner.new(Psych::ClassLoader.new)
+        @paths = FrontMatterPaths.new(config)
       end
 
       def each_span
@@ -67,14 +68,21 @@ module RuboCop
         raise RuboCop::ValidationError, "Invalid YAML front matter in #{@buffer.name}: #{e.message}"
       end
 
-      def string_values(node, &block)
+      def string_values(node, path = [], &block)
         case node
         when Psych::Nodes::Mapping
-          node.children.each_slice(2) { |_key, value| string_values(value, &block) }
+          mapping_values(node, path, &block)
         when Psych::Nodes::Sequence
-          node.children.each { |value| string_values(value, &block) }
+          node.children.each { |value| string_values(value, path, &block) }
         when Psych::Nodes::Scalar
-          yield node if string_scalar?(node)
+          yield node if @paths.include?(path) && string_scalar?(node)
+        end
+      end
+
+      def mapping_values(node, path, &block)
+        node.children.each_slice(2) do |key, value|
+          name = key.is_a?(Psych::Nodes::Scalar) ? key.value : nil
+          string_values(value, [*path, name], &block)
         end
       end
 

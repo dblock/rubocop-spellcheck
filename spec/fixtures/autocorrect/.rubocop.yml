@@ -10,3 +10,15 @@ Spellcheck:
     en:
       - en.dic
       - words.txt
+
+Spellcheck/Spelling:
+  Markdown:
+    FrontMatter:
+      Include:
+        - title
+        - caption
+        - quoted
+        - summary
+        - metadata
+      Exclude:
+        - metadata.slug

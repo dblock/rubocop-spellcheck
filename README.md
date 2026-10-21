@@ -19,6 +19,7 @@ Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://
   - [Plain text](#plain-text)
 - [Autocorrection](#autocorrection)
 - [Configuration](#configuration)
+  - [Front matter paths](#front-matter-paths)
   - [Dictionary files](#dictionary-files)
   - [Adding project vocabulary](#adding-project-vocabulary)
   - [Replacing dictionaries and adding languages](#replacing-dictionaries-and-adding-languages)
@@ -157,6 +158,29 @@ Only words with exactly one suggestion are corrected. Words with multiple sugges
 Corrections apply to Ruby comments, Markdown prose, YAML front matter strings, and plain text. Surrounding punctuation, Markdown formatting, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value.
 
 ## Configuration
+
+### Front matter paths
+
+By default, all front matter string values are checked. Use dotted paths under `Markdown.FrontMatter` to select which values participate:
+
+```yaml
+Spellcheck/Spelling:
+  Markdown:
+    FrontMatter:
+      Enabled: true
+      Include:
+        - title
+        - description
+        - metadata
+        - authors.description
+      Exclude:
+        - metadata.slug
+        - metadata.internal
+```
+
+Paths match exact, case-sensitive key names from the root; dots separate nested keys. Selecting a parent such as `metadata` includes its descendants. Array items use the same path without numeric indices, so `authors.description` selects descriptions in every author mapping. Dots in literal key names and complex YAML keys cannot be addressed by these selectors; wildcards are not supported.
+
+`Include: null` checks all paths; `Include: []` checks none. `Exclude` defaults to an empty list and always takes precedence, including for entire nested mappings. Filtering applies to both diagnostics and autocorrection, without affecting Markdown body prose. `Enabled: false` still disables all front matter checking.
 
 ### Dictionary files
 
