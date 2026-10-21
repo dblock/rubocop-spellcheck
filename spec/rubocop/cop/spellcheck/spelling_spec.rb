@@ -193,6 +193,34 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     _investigate(cop, parse_source(source, path))
   end
 
+  it 'honors Markdown disable and enable blocks without losing Unicode source locations' do
+    source = "<!-- rubocop:disable Spellcheck/Spelling -->\nwrold\n" \
+             "<!-- rubocop:enable Spellcheck/Spelling -->\n😀 wrold\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.column] }).to eq([[4, 2]])
+  end
+
+  it 'limits trailing disable and todo directives to their own line' do
+    source = "wrold <!-- rubocop:disable all -->\nwrold <!-- rubocop:todo Spellcheck/Spelling -->\nwrold\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([3])
+  end
+
+  it 'supports all and cop lists with reasons while ignoring unrelated directives' do
+    source = "<!-- rubocop:disable Layout/LineLength, Spellcheck/Spelling -- vocabulary -->\nwrold\n" \
+             "<!-- rubocop:enable all -->\nwrold\n<!-- rubocop:disable Layout/LineLength -->\nwrold\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([4, 6])
+  end
+
+  it 'does not interpret directives in code or Liquid as suppression' do
+    source = "`<!-- rubocop:disable all -->`\n\n```\n<!-- rubocop:disable all -->\n```\n" \
+             "{{ '<!-- rubocop:disable all -->' }}\n\nwrold\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([8])
+  end
+
+  it 'resets Markdown suppression between investigations' do
+    expect(markdown_offenses("<!-- rubocop:disable all -->\nwrold\n")).to be_empty
+    expect(markdown_offenses("wrold\n").map(&:line)).to eq([1])
+  end
+
   it 'skips Liquid expressions and recognizes template-based link destinations' do
     source = "![world]({{ site.url }}/typpo.png)\n{% include typpo %} 😀 wrold\n"
     expect(markdown_offenses(source).map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(

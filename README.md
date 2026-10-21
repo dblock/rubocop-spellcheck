@@ -230,7 +230,17 @@ Spellcheck/Spelling:
 # rubocop:enable Spellcheck/Spelling
 ```
 
-Ruby inline directives apply to comments; Markdown HTML comments are ignored, not interpreted as suppression directives. To check only one format, use standard file inclusion:
+Ruby inline directives apply to comments. In Markdown, use HTML comments to disable spelling for a block:
+
+```markdown
+<!-- rubocop:disable Spellcheck/Spelling -->
+Intentional project vocabulary.
+<!-- rubocop:enable Spellcheck/Spelling -->
+```
+
+A trailing `<!-- rubocop:disable Spellcheck/Spelling -->` or `<!-- rubocop:todo Spellcheck/Spelling -->` suppresses only its own line. A standalone `todo` also applies only to its own line. Directives accept `all` or comma-separated cop names and an optional reason after ` -- `. Directives inside code, Liquid expressions, or YAML front matter are not interpreted. Suppression prevents both diagnostics and autocorrection.
+
+To check only one format, use standard file inclusion:
 
 ```yaml
 Spellcheck/Spelling:
