@@ -265,7 +265,10 @@ RSpec.describe 'RuboCop spelling integration' do
       output, errors, status = Open3.capture3(*command, '-A', chdir: dir)
       expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
       remaining = JSON.parse(output).fetch('files').reject { |file| file.fetch('offenses').empty? }
-      expect(remaining.map { |file| file.fetch('path') }).to eq(['input/ambiguous.txt', 'input/typed.md'])
+      expect(remaining.map { |file| file.fetch('path') }).to eq(
+        %w[input/ambiguous.txt input/example.adoc input/example.rb input/example.rdoc
+           input/example.txt input/protected.md input/protected.txt input/rdoc_comments.rb input/typed.md]
+      )
       expect(fixture_contents(File.join(dir, 'input'))).to eq(corrected)
     end
   end

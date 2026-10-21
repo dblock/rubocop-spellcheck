@@ -1,4 +1,4 @@
-= 😀 *World*
+= 😀 *Wrold*
 :typpo: wrold
 
 😀 world link:typpo[world] https://typpo.invalid[world] {typpo}.
