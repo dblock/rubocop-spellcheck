@@ -219,6 +219,70 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     _investigate(cop, parse_source(source, path))
   end
 
+  it 'checks AsciiDoc headings, formatted labels, and entities with original Unicode positions' do
+    source = "= 😀 *wrold*\n\nwro&#108;d link:typpo[wrold] https://typpo.invalid[wrold]\n"
+    offenses = markdown_offenses(source, 'example.adoc')
+    expect(offenses.map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[1, 5, 'wrold'], [3, 0, 'wro&#108;d'], [3, 22, 'wrold'], [3, 51, 'wrold']]
+    )
+  end
+
+  it 'checks AsciiDoc lists, block titles, admonitions, and repeated cells independently' do
+    source = <<~ASCIIDOC
+      * wrold
+
+      world:: wrold
+
+      NOTE: wrold
+
+      .wrold
+      |===
+      |wrold |wrold
+      |===
+    ASCIIDOC
+    expect(markdown_offenses(source, 'example.asciidoc').map { |offense| [offense.line, offense.column] }).to eq(
+      [[1, 2], [3, 8], [5, 6], [7, 1], [9, 1], [9, 8]]
+    )
+  end
+
+  it 'skips AsciiDoc metadata, includes, code, passthrough, attributes, and macro destinations' do
+    source = File.read(File.expand_path('../../../fixtures/autocorrect/input/excluded.adoc', __dir__))
+    expect(markdown_offenses(source, 'example.adoc')).to be_empty
+  end
+
+  it 'maps AsciiDoc prose across skipped comments and masks multiline inline code' do
+    source = "wrold\n// typpo\nwrold `typpo\nwrold` wrold\n"
+    expect(markdown_offenses(source, 'example.adoc').map { |offense| [offense.line, offense.column] }).to eq(
+      [[1, 0], [3, 0], [4, 7]]
+    )
+  end
+
+  it 'retains AsciiDoc table offsets after escaped separators and literal cells' do
+    source = "[cols=\"l,d\"]\n|===\n|wrold |😀 wrold \\| wrold\n|===\n"
+    expect(markdown_offenses(source, 'example.adoc').map { |offense| [offense.line, offense.column] }).to eq(
+      [[3, 10], [3, 19]]
+    )
+  end
+
+  it 'uses actual CSV table locations even when parser cell line numbers repeat' do
+    source = "[format=csv]\n|===\nwrold,wrold\nwrold,wrold\n|===\n"
+    expect(markdown_offenses(source, 'example.adoc').map { |offense| [offense.line, offense.column] }).to eq(
+      [[3, 0], [3, 6], [4, 0], [4, 6]]
+    )
+  end
+
+  it 'parses nested AsciiDoc table content without checking its code blocks' do
+    source = "[cols=\"a,d\"]\n|===\n|wrold\n\n----\nwrold\n----\n|wrold\n|===\n"
+    expect(markdown_offenses(source, 'example.adoc').map { |offense| [offense.line, offense.column] }).to eq(
+      [[3, 1], [8, 1]]
+    )
+  end
+
+  it 'checks old-style AsciiDoc headings and resets source locations between files' do
+    expect(markdown_offenses("wrold\n=====\n", 'one.adoc').map(&:line)).to eq([1])
+    expect(markdown_offenses("😀 wrold\n", 'two.asciidoc').map(&:column)).to eq([2])
+  end
+
   it 'honors Markdown disable and enable blocks without losing Unicode source locations' do
     source = "<!-- rubocop:disable Spellcheck/Spelling -->\nwrold\n" \
              "<!-- rubocop:enable Spellcheck/Spelling -->\n😀 wrold\n"

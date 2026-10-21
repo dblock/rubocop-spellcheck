@@ -1,0 +1,10 @@
+world
+=====
+
+*world* footnote:typpo[world] <<typpo,world>>
+
+[format=csv]
+|===
+world,"world"
+world,world
+|===

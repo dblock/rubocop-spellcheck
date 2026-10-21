@@ -1,5 +1,8 @@
 RuboCop
 AllowedWords
+AsciiDoc
+Asciidoctor
+admonitions
 autocorrection
 backend
 basename
@@ -10,6 +13,7 @@ changelog
 checksums
 CLI
 Commonmarker
+CSV
 dblock
 DictionaryFiles
 Doubrovkine
@@ -18,6 +22,7 @@ evans
 Kotoshu
 Kotoshu's
 macOS
+passthrough
 MERCHANTABILITY
 md
 multiline

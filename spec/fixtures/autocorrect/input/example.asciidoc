@@ -1,0 +1,10 @@
+wrold
+=====
+
+*wrold* footnote:typpo[wrold] <<typpo,wrold>>
+
+[format=csv]
+|===
+wrold,"wrold"
+wrold,wrold
+|===

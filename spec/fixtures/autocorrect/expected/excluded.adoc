@@ -1,0 +1,26 @@
+= hello world
+typpo <typpo@example.invalid>
+:typpo: wrold
+
+include::typpo.adoc[]
+include::https://typpo.invalid[]
+
+hello {typpo} `typpo` +typpo+ ++typpo++ pass:[typpo] image:typpo.png[typpo]
+stem:[typpo] kbd:[typpo] btn:[typpo] link:typpo[world] xref:typpo[world] <<typpo,world>>
+
+[source,ruby]
+----
+# wrold
+typpo(
+----
+
+    wrold
+
+// wrold
+////
+wrold
+////
+
+++++
+wrold
+++++

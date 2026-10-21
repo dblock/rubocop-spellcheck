@@ -1,0 +1,50 @@
+= 😀 *Wrold*
+:typpo: wrold
+
+😀 wro&#108;d link:typpo[wrold] https://typpo.invalid[wrold] {typpo}.
+`typpo` +typpo+ pass:[typpo] image:typpo.png[typpo]
+
+* wrold
+
+world:: wrold
+
+NOTE: wrold
+
+.wrold
+|===
+|wrold |wrold
+|===
+
+[cols="l,d"]
+|===
+|wrold |😀 wrold \| wrold
+|===
+
+[cols="a,d"]
+|===
+|wrold
+
+----
+wrold
+----
+|wrold
+|===
+
+[source,ruby]
+----
+# wrold
+typpo(
+----
+
+    wrold
+
+// wrold
+
+////
+wrold
+////
+
+include::typpo.adoc[]
+
+wrold `typpo
+wrold` wrold

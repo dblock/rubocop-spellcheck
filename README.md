@@ -5,7 +5,7 @@
 [![Package](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml)
 [![Gem Version](https://badge.fury.io/rb/rubocop-spellcheck.svg)](https://rubygems.org/gems/rubocop-spellcheck)
 
-Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
+Spellcheck Ruby comments, Markdown, AsciiDoc, and plain text with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
 
 ## Table of Contents
 
@@ -17,6 +17,7 @@ Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://
   - [RDoc](#rdoc)
   - [Markdown](#markdown)
   - [YAML front matter](#yaml-front-matter)
+  - [AsciiDoc](#asciidoc)
   - [Plain text](#plain-text)
 - [Autocorrection](#autocorrection)
 - [Configuration](#configuration)
@@ -59,7 +60,7 @@ By default, the plugin uses the bundled American English dictionary. No dictiona
 
 ## Usage
 
-`Spellcheck/Spelling` is enabled by default and checks Ruby comments, Markdown prose, and plain text:
+`Spellcheck/Spelling` is enabled by default and checks Ruby comments, Markdown, AsciiDoc, and plain text:
 
 ```sh
 bundle exec rubocop
@@ -148,6 +149,12 @@ Spellcheck/Spelling:
       Enabled: false
 ```
 
+### AsciiDoc
+
+The cop discovers `.adoc` and `.asciidoc` files and uses [Asciidoctor](https://asciidoctor.org/) to check headings, paragraphs, list items, admonitions, block titles, and table cells. Formatted prose, link labels, and footnotes retain their original diagnostic and correction locations, including Unicode and encoded characters.
+
+Source and literal blocks, inline code, comments, passthrough content, attribute definitions/references, link destinations, and image/math/keyboard macros are skipped. Includes are not read, extensions are disabled, and Asciidoctor runs in secure mode; linting does not render the document or access external resources. Ruby comments are not interpreted as AsciiDoc.
+
 ### Plain text
 
 Plain `.txt` files are discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
@@ -162,7 +169,7 @@ bundle exec rubocop -A --only Spellcheck/Spelling
 
 Only words with exactly one suggestion are corrected. Words with multiple suggestions, no suggestions, or mixed capitalization remain unchanged. Corrections preserve lowercase, title case, or uppercase and do not introduce multiple words or formatting characters. Review the resulting diff.
 
-Corrections apply to Ruby comments, Markdown prose, YAML front matter strings, and plain text. Surrounding punctuation, Markdown formatting, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value.
+Corrections apply to Ruby comments, Markdown prose, YAML front matter strings, AsciiDoc prose, and plain text. Surrounding punctuation, markup, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value.
 
 ## Configuration
 
