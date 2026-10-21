@@ -69,6 +69,8 @@ module RuboCop
       end
 
       def excluded?(node)
+        return true unless node.heredoc? || node.loc.respond_to?(:begin) # __FILE__ has no literal delimiters.
+
         node.each_ancestor do |ancestor|
           return false if ancestor.begin_type?
           return true if %i[regexp dsym xstr].include?(ancestor.type)

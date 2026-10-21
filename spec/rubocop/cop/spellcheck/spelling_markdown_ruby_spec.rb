@@ -13,6 +13,10 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     expect(offenses("```ruby\nwrold = 'wrold'\n```\n")).to eq([[2, 9, 'wrold']])
   end
 
+  it 'ignores implicit filename strings inside Ruby fences without skipping literal strings' do
+    expect(offenses("```ruby\nhello = __FILE__; world = 'wrold'\n```\n")).to eq([[2, 27, 'wrold']])
+  end
+
   def offenses(source)
     _investigate(cop, parse_source(source, 'example.md')).sort.map do |offense|
       [offense.line, offense.column, offense.location.source]
