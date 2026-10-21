@@ -12,6 +12,9 @@ Spellcheck:
       - words.txt
 
 Spellcheck/Spelling:
+  Ruby:
+    Strings: false
+    Identifiers: false
   Markdown:
     FrontMatter:
       Include:

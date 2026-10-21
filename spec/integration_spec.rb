@@ -4,6 +4,40 @@ require 'open3'
 require 'rbconfig'
 
 RSpec.describe 'RuboCop spelling integration' do
+  it 'corrects Ruby string values with safe syntax while reporting identifiers without renaming them' do
+    Dir.mktmpdir do |dir|
+      fixtures = File.expand_path('fixtures/ruby_spelling', __dir__)
+      FileUtils.cp(File.join(fixtures, 'input.rb'), File.join(dir, 'example.rb'))
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+        Spellcheck:
+          DictionaryFiles:
+            en:
+              - en.dic
+              - words.txt
+      YAML
+      %w[en.dic en.aff].each { |path| FileUtils.cp(File.expand_path("fixtures/#{path}", __dir__), dir) }
+      File.write(File.join(dir, 'words.txt'), "isn't\n")
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', '--cache', 'false', 'example.rb']
+      output, errors, status = Open3.capture3(*command, '-a', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, 'example.rb'))).to eq(File.read(File.join(fixtures, 'input.rb')))
+      output, errors, status = Open3.capture3(*command, '-A', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expected = File.read(File.join(fixtures, 'expected.rb'))
+      expect(File.read(File.join(dir, 'example.rb'))).to eq(expected)
+      expect(RuboCop::ProcessedSource.new(expected, 3.2).valid_syntax?).to be(true)
+      output, errors, status = Open3.capture3(*command, '-A', '--format', 'json', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, 'example.rb'))).to eq(expected)
+      expect(JSON.parse(output).fetch('files').first.fetch('offenses').length).to eq(9)
+    end
+  end
+
   it 'corrects only unique suggestions with unsafe correction across source types and is stable on rerun' do
     Dir.mktmpdir do |dir|
       fixtures = File.expand_path('fixtures/autocorrect', __dir__)

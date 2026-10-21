@@ -1,11 +1,14 @@
 RuboCop
 AllowedWords
+APIs
 AsciiDoc
 Asciidoctor
 admonitions
 autocorrection
 backend
 basename
+heredoc
+heredocs
 BlockLength
 blockquotes
 booleans
@@ -38,6 +41,7 @@ RubyGems
 SCOWL's
 SHA
 sublicense
+sigils
 tokenization
 toolchain
 txt

@@ -3,15 +3,11 @@
 module RuboCop
   module Cop
     module Spellcheck
-      # Checks Ruby comments, Markdown, RDoc, AsciiDoc, and plain text with shared dictionaries.
+      # Checks Ruby code and documentation with shared spelling dictionaries.
       class Spelling < Base
         extend AutoCorrector
 
         BUNDLED_DATA = File.expand_path('../../../../data', __dir__).freeze
-        DIRECTIVE = /
-          \A\#\s*(?:!|(?:rubocop|standard|coding|encoding|frozen_string_literal|
-          warn_indent|shareable_constant_value|typed)\s*:)|\A\#.*-\*-\s*(?:coding|encoding):
-        /x
         ADDRESS = %r{(?:https?://|www\.)[^\s<>]+|[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}}
 
         def self.support_multiple_source?
@@ -23,8 +19,8 @@ module RuboCop
           if RuboCop::Spellcheck::Markdown.file?(processed_source.path)
             check_markdown
           else
-            comments = processed_source.comments.reject { |comment| DIRECTIVE.match?(comment.text) }
-            RuboCop::Spellcheck::RDocComments.new(prose_buffer, comments).each_span { |span| check_markdown_span(span) }
+            RuboCop::Spellcheck::RubyCode.new(processed_source, config: cop_config.fetch('Ruby', {}))
+                                         .each_span { |span| check_markdown_span(span) }
           end
         end
 

@@ -4,7 +4,7 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
   let(:config) do
     RuboCop::Config.new(
       'Spellcheck' => { 'DictionaryFiles' => { 'en' => [File.expand_path('../../../fixtures/en.dic', __dir__)] } },
-      'Spellcheck/Spelling' => { 'Enabled' => true }
+      'Spellcheck/Spelling' => { 'Enabled' => true, 'Ruby' => { 'Strings' => false, 'Identifiers' => false } }
     )
   end
 

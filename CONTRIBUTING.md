@@ -13,7 +13,7 @@ The default task runs RSpec and RuboCop. Unit tests use tiny local Hunspell fixt
 
 Autocorrection integration cases live in `spec/fixtures/autocorrect/input`, with matching files in `expected`. The spec runs the CLI against a temporary copy and compares complete file contents. The fixture tree is excluded from repository linting because it intentionally contains spelling offenses and unchanged code.
 
-The repository enables its own `Spellcheck/Spelling` cop in `.rubocop.yml`, so the default task and CI check Ruby comments, Markdown, AsciiDoc, and plain text using bundled English plus `.spellcheck.txt` for project vocabulary and legal terms in `LICENSE.txt`. Configured dictionaries and bundled data are excluded automatically.
+The repository enables its own `Spellcheck/Spelling` cop in `.rubocop.yml`, so the default task and CI check Ruby comments and documentation using bundled English plus `.spellcheck.txt` for project vocabulary and legal terms in `LICENSE.txt`. Ruby string and identifier checks are explicitly disabled for repository lint; the plugin enables them by default. Their diagnostic and correction cases live in `spec/fixtures/ruby_spelling` and focused cop specs. Fixture trees are excluded from repository linting. Configured dictionaries and bundled data are excluded automatically.
 
 Development linting also enables `rubocop-rake` and `rubocop-rspec`. `Metrics/BlockLength` is disabled.
 
