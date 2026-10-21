@@ -13,11 +13,17 @@ Spellcheck:
       - gem:rubocop-spellcheck/data/en/en.dic
       - .spellcheck.txt
 
+Spellcheck/Spelling:
+  Ruby:
+    Strings: false
+    Identifiers: false
+
 AllCops:
   TargetRubyVersion: 3.2
   NewCops: enable
   Exclude:
     - spec/fixtures/autocorrect/**/*
+    - spec/fixtures/ruby_spelling/**/*
 
 Naming/FileName:
   Exclude:

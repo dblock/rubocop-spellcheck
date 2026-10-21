@@ -7,8 +7,9 @@ Gem::Specification.new do |spec|
   spec.version = RuboCop::Spellcheck::VERSION
   spec.authors = ['Daniel (dB.) Doubrovkine']
   spec.email = ['dblock@dblock.org']
-  spec.summary = 'Spellcheck Ruby comments, Markdown, and plain text with RuboCop.'
-  spec.description = 'RuboCop spelling checks for Ruby comments, Markdown, and plain text, using offline dictionaries.'
+  spec.summary = 'Spellcheck Ruby code and documentation with RuboCop.'
+  spec.description = 'RuboCop spelling checks for Ruby comments, strings, identifiers, and documentation, ' \
+                     'using offline dictionaries.'
   spec.homepage = 'https://github.com/dblock/rubocop-spellcheck'
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 3.2'

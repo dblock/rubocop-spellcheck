@@ -12,9 +12,12 @@ AllCops:
     - "**/*.asciidoc"
 
 Spellcheck/Spelling:
-  Description: Check spelling in Ruby comments, Markdown prose, and plain text.
+  Description: Check spelling in Ruby comments, strings, identifiers, and documentation.
   Enabled: true
   SafeAutoCorrect: false
+  Ruby:
+    Strings: true
+    Identifiers: true
   Markdown:
     FrontMatter:
       Enabled: true

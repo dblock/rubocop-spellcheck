@@ -5,7 +5,7 @@
 [![Package](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml)
 [![Gem Version](https://badge.fury.io/rb/rubocop-spellcheck.svg)](https://rubygems.org/gems/rubocop-spellcheck)
 
-Spellcheck Ruby comments, Markdown, AsciiDoc, and plain text with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
+Spellcheck Ruby comments, strings, identifiers, and documentation with [RuboCop](https://rubocop.org/) and [Kotoshu](https://github.com/kotoshu/kotoshu).
 
 ## Table of Contents
 
@@ -14,6 +14,7 @@ Spellcheck Ruby comments, Markdown, AsciiDoc, and plain text with [RuboCop](http
 - [Other languages](#other-languages)
 - [Supported files](#supported-files)
   - [Ruby comments](#ruby-comments)
+  - [Ruby strings and identifiers](#ruby-strings-and-identifiers)
   - [RDoc](#rdoc)
   - [Markdown](#markdown)
   - [YAML front matter](#yaml-front-matter)
@@ -60,7 +61,7 @@ By default, the plugin uses the bundled American English dictionary. No dictiona
 
 ## Usage
 
-`Spellcheck/Spelling` is enabled by default and checks Ruby comments, Markdown, AsciiDoc, and plain text:
+`Spellcheck/Spelling` is enabled by default and checks Ruby comments, strings, identifiers, Markdown, RDoc, AsciiDoc, and plain text:
 
 ```sh
 bundle exec rubocop
@@ -116,9 +117,26 @@ The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloa
 
 ### Ruby comments
 
-Ruby comments, including trailing and block comments, are checked. Shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations are skipped. Ruby strings, identifiers, symbols, and regular expressions are not inspected. URLs and email addresses are ignored.
+Ruby comments, including trailing and block comments, are checked. Shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations are skipped. URLs and email addresses are ignored.
 
 Adjacent comment lines are parsed together as RDoc, so indented examples and inline code are excluded rather than treated as prose. One conventional space after `#` is removed before parsing; additional indentation is retained. This also applies to block comments.
+
+### Ruby strings and identifiers
+
+Ruby strings and identifiers are checked by default. Strings include ordinary and percent literals, string arrays, heredocs, and the literal portions of interpolated strings. Escape sequences are decoded without evaluating Ruby code, with diagnostics mapped back to the original source. String contents are checked literally, not as Markdown or RDoc; URLs and email addresses are ignored. Symbols (including symbol hash keys), regular expression text, and shell-command text are excluded. Ruby expressions inside interpolation are still checked.
+
+Identifiers include method definitions and calls, class/module/constant names, arguments, and local, instance, class, and global variables. Every occurrence is checked. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, lowercase-to-uppercase transitions, and acronym boundaries. Sigils and method punctuation are not words. Acronyms, abbreviations, external API names, and other intentional vocabulary may need project dictionary entries.
+
+Disable either scope independently, or disable both to retain comment-only Ruby checks:
+
+```yaml
+Spellcheck/Spelling:
+  Ruby:
+    Strings: false
+    Identifiers: false
+```
+
+Standard Ruby suppression directives apply to all three scopes. Identifier errors are report-only: renaming one occurrence could break references or external APIs. Strings support `rubocop -A`, but changing a string can change program behavior; review these edits carefully.
 
 ### RDoc
 
@@ -169,7 +187,7 @@ bundle exec rubocop -A --only Spellcheck/Spelling
 
 Only words with exactly one suggestion are corrected. Words with multiple suggestions, no suggestions, or mixed capitalization remain unchanged. Corrections preserve lowercase, title case, or uppercase and do not introduce multiple words or formatting characters. Review the resulting diff.
 
-Corrections apply to Ruby comments, Markdown prose, YAML front matter strings, AsciiDoc prose, and plain text. Surrounding punctuation, markup, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value.
+Corrections apply to Ruby comments and strings, Markdown prose, YAML front matter strings, RDoc, AsciiDoc prose, and plain text. Identifiers are never renamed. Surrounding punctuation, markup, string delimiters, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; Ruby delimiters and YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value. Corrections that would introduce a heredoc terminator are withheld.
 
 ## Configuration
 

@@ -11,7 +11,7 @@ module RuboCop
           name: 'rubocop-spellcheck',
           version: VERSION,
           homepage: 'https://github.com/dblock/rubocop-spellcheck',
-          description: 'Spellcheck Ruby comments, Markdown prose, and plain text.'
+          description: 'Spellcheck Ruby comments, strings, identifiers, and documentation.'
         )
       end
 
