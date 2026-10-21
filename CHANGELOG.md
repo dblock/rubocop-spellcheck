@@ -2,6 +2,7 @@
 
 ### 0.2.0 (Next)
 
+* [#16](https://github.com/dblock/rubocop-spellcheck/pull/16): Support Markdown HTML comment directives for spelling suppression - [@dblock](https://github.com/dblock).
 * [#15](https://github.com/dblock/rubocop-spellcheck/pull/15): Add spelling autocorrection for words with exactly one dictionary suggestion - [@dblock](https://github.com/dblock).
 * [#14](https://github.com/dblock/rubocop-spellcheck/pull/14): Reuse loaded dictionaries and word verdicts across file investigations instead of rebuilding them for every file - [@dblock](https://github.com/dblock).
 * Your contribution here.

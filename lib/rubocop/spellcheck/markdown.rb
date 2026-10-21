@@ -23,10 +23,8 @@ module RuboCop
       def each_span
         return enum_for(__method__) unless block_given?
 
-        document = Commonmarker.parse(parser_source, options: {
-                                        parse: { smart: false },
-                                        extension: { shortcodes: false, footnotes: true }
-                                      })
+        document = parse_document
+        @directives = MarkdownDirectives.new(@buffer, document)
         document.walk do |node|
           next unless node.type == :text
 
@@ -36,6 +34,13 @@ module RuboCop
       end
 
       private
+
+      def parse_document
+        Commonmarker.parse(parser_source, options: {
+                             parse: { smart: false },
+                             extension: { shortcodes: false, footnotes: true }
+                           })
+      end
 
       def parser_source
         without_front_matter.gsub(LIQUID) do |expression|
@@ -62,7 +67,7 @@ module RuboCop
       end
 
       def decode_text(raw, first)
-        raw = without_liquid(raw)
+        raw = without_liquid(@directives.mask(raw, first))
         text = +''
         positions = []
         raw.to_enum(:scan, PIECE).each do
