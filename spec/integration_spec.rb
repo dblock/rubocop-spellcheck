@@ -4,6 +4,42 @@ require 'open3'
 require 'rbconfig'
 
 RSpec.describe 'RuboCop spelling integration' do
+  it 'corrects explicitly tagged Markdown Ruby strings, retains identifiers, and generates vocabulary from both' do
+    Dir.mktmpdir do |dir|
+      fixtures = File.expand_path('fixtures/markdown_ruby', __dir__)
+      FileUtils.cp(File.join(fixtures, 'input.md'), File.join(dir, 'example.md'))
+      %w[en.dic en.aff].each { |path| FileUtils.cp(File.expand_path("fixtures/#{path}", __dir__), dir) }
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+        Spellcheck:
+          DictionaryFiles:
+            en: [en.dic]
+        Spellcheck/Spelling:
+          Ruby:
+            Identifiers: true
+      YAML
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', 'example.md']
+      output, errors, status = Open3.capture3(*command, '-a', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, 'example.md'))).to eq(File.read(File.join(fixtures, 'input.md')))
+      2.times do
+        output, errors, status = Open3.capture3(*command, '-A', '--format', 'json', chdir: dir)
+        expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+        expect(File.read(File.join(dir, 'example.md'))).to eq(File.read(File.join(fixtures, 'expected.md')))
+        expect(JSON.parse(output).fetch('summary').fetch('offense_count')).to be >= 2
+      end
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("wrold\n")
+      output, errors, status = Open3.capture3(*command, chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+    end
+  end
+
   it 'generates vocabulary instead of disabling spelling and preserves dictionaries across repeated CLI runs' do
     Dir.mktmpdir do |dir|
       FileUtils.cp_r(File.expand_path('fixtures/auto_gen_config', __dir__), File.join(dir, 'input'))
@@ -186,6 +222,9 @@ RSpec.describe 'RuboCop spelling integration' do
             en:
               - en.dic
               - words.txt
+        Spellcheck/Spelling:
+          Ruby:
+            Identifiers: true
       YAML
       %w[en.dic en.aff].each { |path| FileUtils.cp(File.expand_path("fixtures/#{path}", __dir__), dir) }
       File.write(File.join(dir, 'words.txt'), "isn't\n")

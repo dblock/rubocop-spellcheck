@@ -23,10 +23,14 @@ module RuboCop
       def each_span(&)
         comments = @source.comments.reject { |comment| DIRECTIVE.match?(comment.text) }
         RDocComments.new(@source.buffer, comments).each_span(&)
+        each_code_span(&)
+      end
+
+      def each_code_span(&)
         return unless @source.ast
 
         RubyStrings.new(@source).each_span(&) if @config.fetch('Strings', true)
-        RubyIdentifiers.new(@source).each_span(&) if @config.fetch('Identifiers', true)
+        RubyIdentifiers.new(@source).each_span(&) if @config.fetch('Identifiers', false)
       end
     end
   end
