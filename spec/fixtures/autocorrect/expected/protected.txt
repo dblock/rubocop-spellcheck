@@ -1,4 +1,4 @@
-Wrold Wrold
+World World
 Microsoft.public.wrold.msi wrold.world world.wrold
 hello_wrold hello-wrold wrold-hello wrold_world
 world. (world) 'world'

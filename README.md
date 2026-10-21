@@ -185,7 +185,7 @@ Dictionary suggestions may not match your intended meaning, so spelling correcti
 bundle exec rubocop -A --only Spellcheck/Spelling
 ```
 
-Only lowercase words with exactly one suggestion at a distance of one edit are corrected: one insertion, deletion, substitution, or adjacent transposition. Capitalized names, acronyms, mixed-case words, and components of dotted or identifier-like tokens remain report-only. Corrections do not introduce multiple words or formatting characters. These guards reduce mistakes but cannot guarantee the intended meaning; review the resulting diff.
+Lowercase and title-case words whose first suggestion is at a distance of one edit are corrected: one insertion, deletion, substitution, or adjacent transposition. The replacement must pass the configured dictionaries. Other suggestions may be equally close; the first suggestion wins, preserving lowercase or title case. ALL CAPS, mixed-case words, and components of dotted or identifier-like tokens remain report-only. Corrections do not introduce multiple words or formatting characters. Title-case corrections can change people's names; review the resulting diff.
 
 Corrections preserve surrounding markup and string delimiters; escaped letters may become literal letters. Unsafe replacements such as a heredoc terminator or a typed YAML value are withheld. Identifiers are never renamed.
 

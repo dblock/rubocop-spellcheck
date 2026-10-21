@@ -1,2 +1,2 @@
-# 😀 Wrold, WROLD! world world
+# 😀 World, WROLD! world world
 value = 'wrold' # hello

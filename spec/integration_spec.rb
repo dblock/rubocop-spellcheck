@@ -244,7 +244,7 @@ RSpec.describe 'RuboCop spelling integration' do
     end
   end
 
-  it 'corrects only unique suggestions with unsafe correction across source types and is stable on rerun' do
+  it 'corrects close first suggestions with unsafe correction across source types and is stable on rerun' do
     Dir.mktmpdir do |dir|
       fixtures = File.expand_path('fixtures/autocorrect', __dir__)
       FileUtils.cp_r(File.join(fixtures, 'input'), File.join(dir, 'input'))
@@ -266,10 +266,27 @@ RSpec.describe 'RuboCop spelling integration' do
       expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
       remaining = JSON.parse(output).fetch('files').reject { |file| file.fetch('offenses').empty? }
       expect(remaining.map { |file| file.fetch('path') }).to eq(
-        %w[input/ambiguous.txt input/example.adoc input/example.rb input/example.rdoc
-           input/example.txt input/protected.md input/protected.txt input/rdoc_comments.rb input/typed.md]
+        %w[input/ambiguous.txt input/example.rb input/example.txt input/protected.md
+           input/protected.txt input/rdoc_comments.rb input/typed.md]
       )
       expect(fixture_contents(File.join(dir, 'input'))).to eq(corrected)
+    end
+  end
+
+  it 'leaves rejected dictionary suggestions unchanged instead of cycling between replacements' do
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, '.rubocop.yml'), "plugins:\n  - rubocop-spellcheck\n")
+      source = "wii wwii alonkside\n"
+      File.write(File.join(dir, 'example.txt'), source)
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling',
+                 '--cache', 'false', '--format', 'json', '-A', 'example.txt']
+      output, errors, status = Open3.capture3(*command, chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, 'example.txt'))).to eq("wii wwii alongside\n")
+      output, errors, status = Open3.capture3(*command, chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(JSON.parse(output).fetch('files').first.fetch('offenses'))
+        .to all(include('corrected' => false))
     end
   end
 

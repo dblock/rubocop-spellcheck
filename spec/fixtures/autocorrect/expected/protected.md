@@ -1,8 +1,8 @@
 ---
-title: Wrold hello.wrold
+title: World hello.wrold
 ---
 
-Wrold Wrold
+World World
 
 hello.wrold hello-wrold hello_wrold
 
