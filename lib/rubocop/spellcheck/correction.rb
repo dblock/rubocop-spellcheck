@@ -4,7 +4,7 @@ require 'kotoshu/algorithms/edit_distance'
 
 module RuboCop
   module Spellcheck
-    # Restricts unsafe corrections to unambiguous, single-edit lowercase typos.
+    # Restricts unsafe corrections to single-edit lowercase and title-case typos.
     class Correction
       WORD = /\A[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*\z/
 
@@ -28,15 +28,24 @@ module RuboCop
       end
 
       def replacement
-        return unless @suggestions.one? && @word == @word.downcase
+        replacement_word
+      end
+
+      def replacement_word
+        return if @suggestions.empty? || !correctable_case?
 
         suggestion = @suggestions.first.downcase
         return unless WORD.match?(suggestion)
 
-        suggestion if Kotoshu::Algorithms::EditDistance.distance_with_threshold(@word, suggestion, 1) == 1
+        return unless Kotoshu::Algorithms::EditDistance.distance_with_threshold(@word.downcase, suggestion, 1) == 1
+
+        @word == @word.downcase ? suggestion : suggestion.capitalize
       end
 
-      def replacement_in(source, first, last)
+      def replacement_in(source, first, last, checker:)
+        word = replacement_word
+        return unless word && checker.correct?(word)
+
         replacement if Correction.standalone?(source, first, last - first)
       end
 
@@ -45,6 +54,12 @@ module RuboCop
         return message if @suggestions.empty?
 
         "#{message} Did you mean #{@suggestions.map { |suggestion| "`#{suggestion}`" }.join(', ')}?"
+      end
+
+      private
+
+      def correctable_case?
+        @word == @word.downcase || (@word == @word.capitalize && @word != @word.upcase)
       end
     end
   end

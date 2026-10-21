@@ -1,16 +1,30 @@
 # frozen_string_literal: true
 
 RSpec.describe RuboCop::Spellcheck::Correction do
-  it 'requires a unique suggestion and leaves mixed-case identifiers alone' do
-    expect(described_class.new('helo', %w[hello help]).replacement).to be_nil
+  it 'uses the first single-edit suggestion even when another candidate is equally close' do
+    expect(described_class.new('helo', %w[hello help]).replacement).to eq('hello')
+    expect(described_class.new('helo', %w[help hello]).replacement).to eq('help')
+  end
+
+  it 'leaves missing suggestions and mixed-case identifiers alone' do
     expect(described_class.new('typpo', []).replacement).to be_nil
     expect(described_class.new('wRoLd', ['world']).replacement).to be_nil
   end
 
-  it 'corrects lowercase words but leaves names and acronyms report-only' do
+  it 'does not skip a distant first suggestion to select a closer later suggestion' do
+    expect(described_class.new('wrold', %w[word world]).replacement).to be_nil
+  end
+
+  it 'preserves lowercase and title case but leaves acronyms report-only' do
     expect(described_class.new('wrold', ['World']).replacement).to eq('world')
-    expect(described_class.new('Wrold', ['world']).replacement).to be_nil
+    expect(described_class.new('Wrold', ['world']).replacement).to eq('World')
     expect(described_class.new('WROLD', ['world']).replacement).to be_nil
+  end
+
+  it 'corrects title case using the first close suggestion but protects single-letter capitals' do
+    expect(described_class.new('Alonkside', %w[alongside backside dockside]).replacement).to eq('Alongside')
+    expect(described_class.new('A', ['a']).replacement).to be_nil
+    expect(described_class.new('X', ['a']).replacement).to be_nil
   end
 
   it 'accepts a single insertion, deletion, substitution, or adjacent transposition' do

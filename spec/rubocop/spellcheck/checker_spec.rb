@@ -29,6 +29,13 @@ RSpec.describe RuboCop::Spellcheck::Checker do
     expect(Kotoshu::ResourceManager).not_to have_received(:resolve)
   end
 
+  it 'corrects a close top-ranked suggestion from the bundled dictionary despite other candidates' do
+    instance = described_class.new
+    suggestions = instance.suggestions('alonkside')
+    expect(suggestions.length).to be > 1
+    expect(RuboCop::Spellcheck::Correction.new('alonkside', suggestions).replacement).to eq('alongside')
+  end
+
   it 'adds vocabulary only when the primary dictionary is explicitly retained' do
     Dir.mktmpdir do |dir|
       path = File.join(dir, 'words.txt')

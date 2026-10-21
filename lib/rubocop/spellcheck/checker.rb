@@ -41,6 +41,12 @@ module RuboCop
         end.uniq.first(3)
       end
 
+      def correct?(word)
+        return @verdicts[word] if @verdicts.key?(word)
+
+        @verdicts[word] = @checkers.any? { |checker| checker.correct?(word) }
+      end
+
       private
 
       def tokens(checker, text)
@@ -127,12 +133,6 @@ module RuboCop
         raise RuboCop::ValidationError, "Expected one word per line in #{path}: #{word.inspect}" if word.match?(/\s/)
 
         word
-      end
-
-      def correct?(word)
-        return @verdicts[word] if @verdicts.key?(word)
-
-        @verdicts[word] = @checkers.any? { |checker| checker.correct?(word) }
       end
     end
   end

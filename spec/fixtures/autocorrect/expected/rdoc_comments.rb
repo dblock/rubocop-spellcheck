@@ -1,4 +1,4 @@
-# = 😀 Wrold
+# = 😀 World
 #
 # hello +typpo+ <tt>typpo</tt> *world* {world}[link:typpo.rdoc]
 #
