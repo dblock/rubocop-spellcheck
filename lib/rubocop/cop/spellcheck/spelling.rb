@@ -23,11 +23,8 @@ module RuboCop
           if RuboCop::Spellcheck::Markdown.file?(processed_source.path)
             check_markdown
           else
-            processed_source.comments.each do |comment|
-              next if DIRECTIVE.match?(comment.text)
-
-              check_comment(comment)
-            end
+            comments = processed_source.comments.reject { |comment| DIRECTIVE.match?(comment.text) }
+            RuboCop::Spellcheck::RDocComments.new(prose_buffer, comments).each_span { |span| check_markdown_span(span) }
           end
         end
 
@@ -36,6 +33,8 @@ module RuboCop
             check_text
           elsif RuboCop::Spellcheck::Markdown.file?(processed_source.path)
             check_markdown
+          elsif RuboCop::Spellcheck::RDoc.file?(processed_source.path)
+            RuboCop::Spellcheck::RDoc.new(prose_buffer).each_span { |span| check_markdown_span(span) }
           else
             super
           end
@@ -87,14 +86,6 @@ module RuboCop
             dictionary_files: cop_config['DictionaryFiles'],
             base_directory: config.base_dir_for_path_parameters
           )
-        end
-
-        def check_comment(comment)
-          text = mask_addresses(comment.text).gsub(/^=(?:begin|end)\b[^\n]*/) { |marker| ' ' * marker.length }
-          checker.misspellings(text).each do |word, position|
-            first = comment.source_range.begin_pos + position
-            report_word(word, first, first + word.length)
-          end
         end
 
         def check_markdown_span(span)

@@ -1,0 +1,9 @@
+= 😀 Wrold
+
+* wrold
+
+hello +typpo+ <tt>typpo</tt> *wrold* {wrold}[link:typpo.rdoc]
+
+  typpo wrold
+
+:include: typpo.rdoc

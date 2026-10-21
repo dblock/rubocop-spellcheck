@@ -97,6 +97,32 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     RUBY
   end
 
+  it 'checks RDoc headings, lists, and link labels at original Unicode positions' do
+    source = "= 😀 wrold\n\n* wrold\n\n{wrold}[link:typpo.rdoc] +typpo+ <tt>typpo</tt>\n\n  typpo\n"
+    offenses = _investigate(cop, parse_source(source, 'example.rdoc'))
+    expect(offenses.map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[1, 4, 'wrold'], [3, 2, 'wrold'], [5, 1, 'wrold']]
+    )
+  end
+
+  it 'parses adjacent Ruby comments as RDoc without checking examples or directives' do
+    source = "# = 😀 wrold\n#\n# hello +typpo+ {wrold}[link:typpo]\n#\n#   typpo\n#\n# :include: typpo.rdoc\n"
+    offenses = _investigate(cop, parse_source(source))
+    expect(offenses.map { |offense| [offense.line, offense.column, offense.location.source] }).to eq(
+      [[1, 6, 'wrold'], [3, 17, 'wrold']]
+    )
+  end
+
+  it 'does not carry RDoc verbatim indentation into the next comment group' do
+    source = "# hello\n#\n#   typpo\nvalue = 1\n# wrold\n"
+    expect(_investigate(cop, parse_source(source)).map(&:line)).to eq([5])
+  end
+
+  it 'skips RDoc inline code spanning adjacent comment lines' do
+    source = "# hello <code>typpo\n# wrold</code> wrold\n"
+    expect(_investigate(cop, parse_source(source)).map { |offense| [offense.line, offense.column] }).to eq([[2, 15]])
+  end
+
   it 'leaves correctly spelled words and affixed forms alone' do
     expect_no_offenses("# hello world features\n")
   end

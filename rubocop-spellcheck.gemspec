@@ -26,5 +26,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'commonmarker', '~> 2.0'
   spec.add_dependency 'kotoshu', '~> 1.0.8'
   spec.add_dependency 'lint_roller', '~> 1.1'
+  spec.add_dependency 'rdoc', '~> 8.1'
   spec.add_dependency 'rubocop', '~> 1.72', '>= 1.72.1'
 end
