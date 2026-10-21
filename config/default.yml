@@ -15,5 +15,7 @@ Spellcheck/Spelling:
   Markdown:
     FrontMatter:
       Enabled: true
+      Include:
+      Exclude: []
   VersionAdded: "0.1"
   VersionChanged: "0.2"

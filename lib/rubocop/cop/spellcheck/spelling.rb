@@ -63,8 +63,9 @@ module RuboCop
         private
 
         def check_markdown
-          if cop_config.fetch('Markdown', {}).fetch('FrontMatter', {}).fetch('Enabled', true)
-            RuboCop::Spellcheck::FrontMatter.new(prose_buffer).each_span do |span|
+          front_matter = cop_config.fetch('Markdown', {}).fetch('FrontMatter', {})
+          if front_matter.fetch('Enabled', true)
+            RuboCop::Spellcheck::FrontMatter.new(prose_buffer, config: front_matter).each_span do |span|
               check_markdown_span(span)
             end
           end

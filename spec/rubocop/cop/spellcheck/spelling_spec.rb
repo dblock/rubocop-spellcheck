@@ -257,6 +257,51 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     expect(markdown_offenses("---\ntitle: wrold\n---\n")).to be_empty
   end
 
+  it 'selects dotted front matter paths through mappings and arrays without affecting body prose' do
+    config['Spellcheck/Spelling']['Markdown'] = {
+      'FrontMatter' => { 'Include' => ['metadata.title', 'authors.description'] }
+    }
+    source = "---\ntitle: wrold\nmetadata:\n  title: wrold\n  slug: wrold\n" \
+             "authors:\n  - description: wrold\n    name: wrold\n---\nwrold\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([4, 7, 10])
+  end
+
+  it 'includes descendants while exclusions override included parent paths' do
+    config['Spellcheck/Spelling']['Markdown'] = {
+      'FrontMatter' => { 'Include' => ['metadata'], 'Exclude' => ['metadata.slug', 'metadata.internal'] }
+    }
+    source = "---\nmetadata:\n  title: 😀 wrold\n  slug: wrold\n  internal:\n    title: wrold\n" \
+             "metadata_extra:\n  title: wrold\n---\n"
+    expect(markdown_offenses(source).map { |offense| [offense.line, offense.column] }).to eq([[3, 11]])
+  end
+
+  it 'checks all front matter paths by default and supports excluding whole subtrees' do
+    config['Spellcheck/Spelling']['Markdown'] = { 'FrontMatter' => { 'Exclude' => ['metadata'] } }
+    source = "---\ntitle: wrold\nmetadata:\n  title: wrold\n---\n"
+    expect(markdown_offenses(source).map(&:line)).to eq([2])
+  end
+
+  it 'treats an empty inclusion list as no front matter values' do
+    config['Spellcheck/Spelling']['Markdown'] = { 'FrontMatter' => { 'Include' => [] } }
+    expect(markdown_offenses("---\ntitle: wrold\n---\nwrold\n").map(&:line)).to eq([4])
+  end
+
+  it 'rejects malformed front matter path settings explicitly' do
+    ['title', [nil], [''], ['metadata..title'], ['.title'], ['title.']].each do |paths|
+      config['Spellcheck/Spelling']['Markdown'] = { 'FrontMatter' => { 'Include' => paths } }
+      expect { markdown_offenses("---\ntitle: wrold\n---\n") }.to raise_error(
+        RuboCop::ValidationError, /FrontMatter.Include/
+      )
+    end
+  end
+
+  it 'rejects a null exclusion list rather than silently ignoring it' do
+    config['Spellcheck/Spelling']['Markdown'] = { 'FrontMatter' => { 'Exclude' => nil } }
+    expect { markdown_offenses("---\ntitle: wrold\n---\n") }.to raise_error(
+      RuboCop::ValidationError, /FrontMatter.Exclude/
+    )
+  end
+
   it 'skips numbers, booleans, dates, timestamps, nulls, and aliases' do
     source = "---\nvalues: [42, 1.5, true, false, yes, no, null, ~, 2026-10-20, 2026-10-20T12:00:00Z]\n---\n"
     expect(markdown_offenses(source)).to be_empty
