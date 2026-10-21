@@ -4,6 +4,173 @@ require 'open3'
 require 'rbconfig'
 
 RSpec.describe 'RuboCop spelling integration' do
+  it 'generates vocabulary instead of disabling spelling and preserves dictionaries across repeated CLI runs' do
+    Dir.mktmpdir do |dir|
+      FileUtils.cp_r(File.expand_path('fixtures/auto_gen_config', __dir__), File.join(dir, 'input'))
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        # Keep this comment.
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+      YAML
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', 'input']
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("quuxify\nwrold\n")
+      configuration = File.read(File.join(dir, '.rubocop.yml'))
+      expect(configuration).to include('# Keep this comment.')
+      expect(YAML.safe_load(configuration).dig('Spellcheck', 'DictionaryFiles')).to eq(
+        'en' => ['gem:rubocop-spellcheck/data/en/en.dic', '.spellcheck.txt']
+      )
+      expect(File.read(File.join(dir, '.rubocop_todo.yml'))).not_to include('Spellcheck/Spelling:')
+      output, errors, status = Open3.capture3(*command, '--format', 'json', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(JSON.parse(output).fetch('summary').fetch('offense_count')).to eq(0)
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("quuxify\nwrold\n")
+      expect(File.read(File.join(dir, '.rubocop.yml'))).to eq(configuration)
+      File.write(File.join(dir, 'input', 'new.txt'), 'zzzzzzzzzzzz')
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("quuxify\nwrold\nzzzzzzzzzzzz\n")
+    end
+  end
+
+  it 'retains cop-specific dictionary overrides, comments, and existing case-insensitive vocabulary' do
+    Dir.mktmpdir do |dir|
+      FileUtils.cp_r(File.expand_path('fixtures/auto_gen_config', __dir__), File.join(dir, 'input'))
+      %w[en.dic en.aff].each { |path| FileUtils.cp(File.expand_path("fixtures/#{path}", __dir__), dir) }
+      File.write(File.join(dir, '.spellcheck.txt'), "# Existing vocabulary\nQuuxify")
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+        Spellcheck/Spelling:
+          # Keep cop options.
+          DictionaryFiles:
+            en: [en.dic]
+          Markdown:
+            FrontMatter:
+              Enabled: false
+        Layout/LineLength:
+          Max: 100
+      YAML
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', 'input']
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("# Existing vocabulary\nQuuxify\nwrold\n")
+      configuration = File.read(File.join(dir, '.rubocop.yml'))
+      expect(configuration).to include('# Keep cop options.')
+      data = YAML.safe_load(configuration)
+      expect(data.dig('Spellcheck/Spelling', 'DictionaryFiles')).to eq('en' => ['en.dic', '.spellcheck.txt'])
+      expect(data.dig('Spellcheck/Spelling', 'Markdown', 'FrontMatter', 'Enabled')).to be(false)
+      expect(data.dig('Layout/LineLength', 'Max')).to eq(100)
+      output, errors, status = Open3.capture3(*command, '--format', 'json', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(JSON.parse(output).fetch('summary').fetch('offense_count')).to eq(0)
+    end
+  end
+
+  it 'updates separate project configurations and leaves other auto-generated cop settings intact' do
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'nested'))
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+        Spellcheck:
+          DictionaryFiles:
+            en:
+              - gem:rubocop-spellcheck/data/en/en.dic
+      YAML
+      File.write(File.join(dir, 'nested', '.rubocop.yml'), "inherit_from: ../.rubocop.yml\n")
+      File.write(File.join(dir, 'example.rb'), "# wrold\nvalue='hello'\n")
+      File.write(File.join(dir, 'nested', 'example.md'), "quuxify\n")
+      command = [RbConfig.ruby, '-S', 'rubocop']
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', '--auto-gen-only-exclude', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("wrold\n")
+      expect(File.read(File.join(dir, 'nested', '.spellcheck.txt'))).to eq("quuxify\n")
+      todo = File.read(File.join(dir, '.rubocop_todo.yml'))
+      expect(todo).not_to include('Spellcheck/Spelling:')
+      expect(todo).to include('Layout/SpaceAroundOperators:')
+      output, errors, status = Open3.capture3(*command, '--only', 'Spellcheck/Spelling', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+    end
+  end
+
+  it 'uses an explicit configuration directory and creates no vocabulary until spelling offenses exist' do
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, 'config'))
+      configuration = File.join(dir, 'config', '.rubocop.yml')
+      File.write(configuration, <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+      YAML
+      File.write(File.join(dir, 'example.txt'), 'hello world')
+      command = [RbConfig.ruby, '-S', 'rubocop', '--config', 'config/.rubocop.yml',
+                 '--only', 'Spellcheck/Spelling', 'example.txt']
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.exist?(File.join(dir, 'config', '.spellcheck.txt'))).to be(false)
+      expect(File.read(configuration)).not_to include('DictionaryFiles')
+      File.write(File.join(dir, 'example.txt'), 'wrold')
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(File.join(dir, 'config', '.spellcheck.txt'))).to eq("wrold\n")
+      expect(File.exist?(File.join(dir, '.spellcheck.txt'))).to be(false)
+      output, errors, status = Open3.capture3(*command, chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+    end
+  end
+
+  it 'rebuilds vocabulary from unsuppressed violations and preserves comments even when all entries become obsolete' do
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, '.rubocop.yml'), <<~YAML)
+        plugins:
+          - rubocop-spellcheck
+        AllCops:
+          NewCops: enable
+          SuggestExtensions: false
+        Spellcheck:
+          DictionaryFiles:
+            en:
+              - gem:rubocop-spellcheck/data/en/en.dic
+              - .spellcheck.txt
+      YAML
+      vocabulary = File.join(dir, '.spellcheck.txt')
+      File.write(vocabulary, "# Keep this comment.\nQuuxify\nobsoleteword\nhello\nsuppressedword\n")
+      source = File.join(dir, 'example.rb')
+      File.write(source, "# quuxify\nhello = 'zzzzzzzzzzzz'\n" \
+                         "# rubocop:disable Spellcheck/Spelling\n# suppressedword\n" \
+                         "# rubocop:enable Spellcheck/Spelling\n")
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', 'example.rb']
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(vocabulary)).to eq("# Keep this comment.\nQuuxify\nzzzzzzzzzzzz\n")
+      File.write(source, "# hello world\n")
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', '--only', 'Layout/LineLength', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(vocabulary)).to include('Quuxify')
+      output, errors, status = Open3.capture3(*command, chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(vocabulary)).to include('Quuxify')
+      output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
+      expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(File.read(vocabulary)).to eq("# Keep this comment.\n")
+    end
+  end
+
   it 'corrects Ruby string values with safe syntax while reporting identifiers without renaming them' do
     Dir.mktmpdir do |dir|
       fixtures = File.expand_path('fixtures/ruby_spelling', __dir__)
