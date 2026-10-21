@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.3.0 (Next)
+
+* Your contribution here.
+
 ### 0.2.0 (2026/10/21)
 
 * [#28](https://github.com/dblock/rubocop-spellcheck/pull/28): Exclude `require`, `require_relative`, `load`, and `autoload` paths and `gem` names and version requirements from spelling checks in Ruby files and Markdown Ruby fences - [@dblock](https://github.com/dblock).
