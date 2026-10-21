@@ -4,6 +4,8 @@ module RuboCop
   module Spellcheck
     # Extracts string tokens selected by the syntax tree, excluding symbols and executable strings.
     class RubyStrings
+      PATH_ARGUMENTS = { require: 0, require_relative: 0, load: 0, autoload: 1 }.freeze
+
       # Retains delimiters and heredoc boundaries for source-safe replacement.
       class Span < Spellcheck::Span
         def initialize(text, positions, delimiters, terminator)
@@ -70,12 +72,38 @@ module RuboCop
 
       def excluded?(node)
         return true unless node.heredoc? || node.loc.respond_to?(:begin) # __FILE__ has no literal delimiters.
+        return true if dependency_string?(node)
 
         node.each_ancestor do |ancestor|
           return false if ancestor.begin_type?
           return true if %i[regexp dsym xstr].include?(ancestor.type)
         end
         false
+      end
+
+      def dependency_string?(node)
+        node = node.parent while node.parent && %i[dstr array].include?(node.parent.type)
+        call = node.parent
+        return false unless call&.send_type?
+
+        dependency_argument?(call, node) &&
+          (call.method?(:autoload) ? module_receiver?(call.receiver) : kernel_receiver?(call.receiver))
+      end
+
+      def dependency_argument?(call, node)
+        return call.arguments.include?(node) if call.method?(:gem)
+        return false unless PATH_ARGUMENTS.key?(call.method_name)
+
+        call.arguments[PATH_ARGUMENTS.fetch(call.method_name)].equal?(node)
+      end
+
+      def module_receiver?(receiver)
+        receiver.nil? || receiver.self_type? || receiver.const_type?
+      end
+
+      def kernel_receiver?(receiver)
+        receiver.nil? || receiver.self_type? ||
+          (receiver.const_type? && %w[Kernel ::Kernel].include?(receiver.const_name))
       end
 
       def content_range(node)

@@ -86,6 +86,46 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     expect(offenses('hello = "https://typpo.invalid user@typpo.invalid world"')).to be_empty
   end
 
+  it 'ignores require paths including interpolation, heredocs, and explicit Kernel receivers' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = <<~'RUBY'
+      require 'typpo'
+      require_relative "typpo/#{hello}/wrold"
+      Kernel.require %q[typpo]
+      ::Kernel.require_relative 'typpo'
+      require <<~PATH
+        typpo
+      PATH
+      require "typpo/#{raise 'wrold'}"
+    RUBY
+    expect(offenses(source)).to eq([[8, 24, 'wrold']])
+  end
+
+  it 'keeps prose arguments, custom receivers, and unrelated strings checked' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = "warn 'wrold'\nraise 'wrold'\nhello.require 'wrold'\nhello = 'wrold'\n"
+    expect(offenses(source).map(&:last)).to eq(%w[wrold wrold wrold wrold])
+  end
+
+  it 'ignores load paths, autoload paths, and gem names and version requirements' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = <<~'RUBY'
+      load 'typpo'
+      Kernel.load "typpo/#{hello}"
+      autoload :Hello, 'typpo'
+      Hello.autoload :World, 'typpo'
+      gem 'typpo', 'wrold', ['typpo']
+      self.gem 'typpo', require: 'wrold'
+    RUBY
+    expect(offenses(source)).to eq([[6, 28, 'wrold']])
+  end
+
+  it 'does not hide prose expressions or unrelated arguments inside dependency calls' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = "load(hello('wrold'))\nautoload 'wrold', 'typpo'\nhello.gem 'wrold'\nhello.load 'wrold'\n"
+    expect(offenses(source).map(&:last)).to eq(%w[wrold wrold wrold wrold])
+  end
+
   it 'handles literal backslashes, unknown escapes, control escapes, and binary bytes without evaluation' do
     source = %q(hello = "\xFF \cA \M-\C-a wrold"; world = %q{hello\ world}; hello = "\q wrold")
     expect(offenses(source).map(&:last)).to eq(['wrold', '\q', 'wrold'])
