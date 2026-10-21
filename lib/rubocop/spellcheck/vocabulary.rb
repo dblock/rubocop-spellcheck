@@ -6,6 +6,11 @@ module RuboCop
     class Vocabulary
       # Still fingerprints and excludes the vocabulary file, but does not accept its words.
       class Checker < Spellcheck::Checker
+        def suggestions(_word)
+          # Vocabulary generation only collects words, so skip expensive suggestions.
+          []
+        end
+
         private
 
         def dictionary_word(line, path)
