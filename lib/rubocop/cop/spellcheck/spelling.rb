@@ -3,7 +3,7 @@
 module RuboCop
   module Cop
     module Spellcheck
-      # Checks Ruby comments, Markdown prose, and plain text with shared dictionaries.
+      # Checks Ruby comments, Markdown, RDoc, AsciiDoc, and plain text with shared dictionaries.
       class Spelling < Base
         extend AutoCorrector
 
@@ -33,8 +33,8 @@ module RuboCop
             check_text
           elsif RuboCop::Spellcheck::Markdown.file?(processed_source.path)
             check_markdown
-          elsif RuboCop::Spellcheck::RDoc.file?(processed_source.path)
-            RuboCop::Spellcheck::RDoc.new(prose_buffer).each_span { |span| check_markdown_span(span) }
+          elsif (extractor = prose_extractor)
+            extractor.new(prose_buffer).each_span { |span| check_markdown_span(span) }
           else
             super
           end
@@ -60,6 +60,12 @@ module RuboCop
         end
 
         private
+
+        def prose_extractor
+          [RuboCop::Spellcheck::RDoc, RuboCop::Spellcheck::AsciiDoc].find do |extractor|
+            extractor.file?(processed_source.path)
+          end
+        end
 
         def check_markdown
           front_matter = cop_config.fetch('Markdown', {}).fetch('FrontMatter', {})

@@ -8,6 +8,8 @@ AllCops:
     - "**/*.markdown"
     - "**/*.txt"
     - "**/*.rdoc"
+    - "**/*.adoc"
+    - "**/*.asciidoc"
 
 Spellcheck/Spelling:
   Description: Check spelling in Ruby comments, Markdown prose, and plain text.

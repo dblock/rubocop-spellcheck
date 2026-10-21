@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['lib/**/*.rb', 'config/*.yml', 'data/**/*'].select { |path| File.file?(path) } +
                %w[README.md CHANGELOG.md LICENSE.txt]
   spec.require_paths = ['lib']
+  spec.add_dependency 'asciidoctor', '~> 2.0'
   spec.add_dependency 'commonmarker', '~> 2.0'
   spec.add_dependency 'kotoshu', '~> 1.0.8'
   spec.add_dependency 'lint_roller', '~> 1.1'

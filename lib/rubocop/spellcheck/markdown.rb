@@ -15,6 +15,14 @@ module RuboCop
         path && EXTENSIONS.include?(File.extname(path).downcase)
       end
 
+      def self.decode(piece)
+        return piece.delete_prefix('\\') if piece.start_with?('\\')
+        return piece unless ENTITY.match?(piece)
+
+        document = Commonmarker.parse(piece, options: { parse: { smart: false } })
+        document.walk.select { |node| node.type == :text }.map(&:string_content).join
+      end
+
       def initialize(buffer)
         @buffer = buffer
         @lines = buffer.source.lines
@@ -72,7 +80,7 @@ module RuboCop
         positions = []
         raw.to_enum(:scan, PIECE).each do
           match = Regexp.last_match
-          decoded = decode(match[0])
+          decoded = Markdown.decode(match[0])
           text << decoded
           decoded.length.times { positions << [first + match.begin(0), first + match.end(0)] }
         end
@@ -81,14 +89,6 @@ module RuboCop
 
       def without_liquid(raw)
         raw.gsub(LIQUID) { |expression| expression.gsub(/[^\n]/, ' ') }
-      end
-
-      def decode(piece)
-        return piece.delete_prefix('\\') if piece.start_with?('\\')
-        return piece unless ENTITY.match?(piece)
-
-        document = Commonmarker.parse(piece, options: { parse: { smart: false } })
-        document.walk.select { |node| node.type == :text }.map(&:string_content).join
       end
     end
   end
