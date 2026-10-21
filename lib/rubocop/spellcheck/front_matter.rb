@@ -7,6 +7,40 @@ module RuboCop
   module Spellcheck
     # Reads YAML string values without constructing application objects.
     class FrontMatter
+      # Retains scalar syntax at extraction time rather than in the reporting code.
+      class Span < Spellcheck::Span
+        def initialize(text, positions, style)
+          super(text, positions)
+          @style = style
+        end
+
+        def correction(word, suggestions)
+          Correction.new(word, suggestions, @style)
+        end
+      end
+
+      # Applies YAML quoting and scalar-type constraints to a spelling replacement.
+      class Correction < Spellcheck::Correction
+        def initialize(word, suggestions, style)
+          super(word, suggestions)
+          @style = style
+        end
+
+        def replacement
+          suggestion = super
+          return unless suggestion
+
+          case @style
+          when Psych::Nodes::Scalar::SINGLE_QUOTED
+            suggestion.gsub("'", "''")
+          when Psych::Nodes::Scalar::PLAIN
+            suggestion if Psych::ScalarScanner.new(Psych::ClassLoader.new).tokenize(suggestion).is_a?(String)
+          else
+            suggestion
+          end
+        end
+      end
+
       HEADER = /\A(?:\uFEFF)?---[ \t]*\n.*?^(?:---|\.\.\.)[ \t]*(?:\n|\z)/m
       ESCAPE = /\\(?:U[0-9a-fA-F]{8}|u[0-9a-fA-F]{4}|x[0-9a-fA-F]{2}|.)/m
 
@@ -60,7 +94,8 @@ module RuboCop
         last = position(node.end_line, node.end_column)
         raw = @buffer.source[first...last]
         prefix = raw[/\A(?:(?:&\S+|!\S+)[ \t]+)+/].to_s.length
-        map_pieces(raw[prefix..], node.style, first + prefix)
+        style = node.style
+        Span.new(*map_pieces(raw[prefix..], style, first + prefix), style)
       end
 
       def map_pieces(raw, style, first)

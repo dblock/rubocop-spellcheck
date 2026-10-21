@@ -1,7 +1,8 @@
 ## Changelog
 
-### 0.1.1 (Next)
+### 0.2.0 (Next)
 
+* [#15](https://github.com/dblock/rubocop-spellcheck/pull/15): Add spelling autocorrection for words with exactly one dictionary suggestion - [@dblock](https://github.com/dblock).
 * [#14](https://github.com/dblock/rubocop-spellcheck/pull/14): Reuse loaded dictionaries and word verdicts across file investigations instead of rebuilding them for every file - [@dblock](https://github.com/dblock).
 * Your contribution here.
 

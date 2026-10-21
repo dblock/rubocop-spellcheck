@@ -11,6 +11,13 @@ Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Other languages](#other-languages)
+- [Supported files](#supported-files)
+  - [Ruby comments](#ruby-comments)
+  - [Markdown](#markdown)
+  - [YAML front matter](#yaml-front-matter)
+  - [Plain text](#plain-text)
+- [Autocorrection](#autocorrection)
 - [Configuration](#configuration)
   - [Dictionary files](#dictionary-files)
   - [Adding project vocabulary](#adding-project-vocabulary)
@@ -48,37 +55,9 @@ bundle exec rubocop
 
 By default, the plugin uses the bundled American English dictionary. No dictionary setup, external cache, or network access is needed.
 
-For another language, download a Hunspell dictionary and its license into your project. For example, download the [latest German resources](https://github.com/kotoshu/dictionaries/tree/v1/de/spelling):
-
-```sh
-mkdir -p dictionaries/de
-curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/index.dic -o dictionaries/de/de.dic
-curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/index.aff -o dictionaries/de/de.aff
-curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/license -o dictionaries/de/LICENSE
-```
-
-Then configure the locations explicitly:
-
-```yaml
-Spellcheck:
-  DictionaryFiles:
-    de:
-      - dictionaries/de/de.dic
-```
-
-The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloaded license and preserve its notices when committing or redistributing dictionary files. Commit these files or provision the same files in CI for reproducible results. You can also point to Hunspell files supplied by your operating system. The plugin does not use Kotoshu's resource cache, registration, or setup command; linting never downloads anything.
-
 ## Usage
 
-`Spellcheck/Spelling` is enabled by default:
-
-```ruby
-# bad
-# The red brown fox jumsp over the lazy dog.
-
-# good
-# The red brown fox jumps over the lazy dog.
-```
+`Spellcheck/Spelling` is enabled by default and checks Ruby comments, Markdown prose, and plain text:
 
 ```sh
 bundle exec rubocop
@@ -106,9 +85,39 @@ example.rb:1:21: C: Spellcheck/Spelling: Misspelled word: jumsp. Did you mean ju
 1 file inspected, 1 offense detected
 ```
 
-Each offense highlights the misspelled word and includes up to three suggestions when available. Spelling is ambiguous, so there is no autocorrection.
+Each offense highlights the misspelled word and includes up to three suggestions when available.
 
-The same cop discovers `.md` and `.markdown` files and checks their prose:
+## Other languages
+
+For another language, download a Hunspell dictionary and its license into your project. For example, download the [latest German resources](https://github.com/kotoshu/dictionaries/tree/v1/de/spelling):
+
+```sh
+mkdir -p dictionaries/de
+curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/index.dic -o dictionaries/de/de.dic
+curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/index.aff -o dictionaries/de/de.aff
+curl -fL https://raw.githubusercontent.com/kotoshu/dictionaries/v1/de/spelling/license -o dictionaries/de/LICENSE
+```
+
+Then configure the locations explicitly:
+
+```yaml
+Spellcheck:
+  DictionaryFiles:
+    de:
+      - dictionaries/de/de.dic
+```
+
+The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloaded license and preserve its notices when committing or redistributing dictionary files. Commit these files or provision the same files in CI for reproducible results. You can also point to Hunspell files supplied by your operating system. The plugin does not use Kotoshu's resource cache, registration, or setup command; linting never downloads anything.
+
+## Supported files
+
+### Ruby comments
+
+Ruby comments, including trailing and block comments, are checked. Shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations are skipped. Ruby strings, identifiers, symbols, and regular expressions are not inspected. URLs and email addresses are ignored.
+
+### Markdown
+
+The cop discovers `.md` and `.markdown` files and checks their prose:
 
 ```markdown
 # The red brown fox jumsp over the lazy dog.
@@ -116,7 +125,11 @@ The same cop discovers `.md` and `.markdown` files and checks their prose:
 Check [the spelling](https://example.com) but not `code_identifiers`.
 ```
 
-Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, and HTML tags/comments and HTML blocks are skipped. URLs and email addresses are ignored in both formats. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
+Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, and HTML tags/comments and HTML blocks are skipped. URLs and email addresses are ignored. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
+
+Liquid output expressions and tags are ignored, including expressions inside link destinations.
+
+### YAML front matter
 
 YAML front matter checks string values recursively, including values inside mappings and arrays. Keys and strongly typed values such as numbers, booleans, dates, timestamps, and nulls are skipped. Quoted values are strings even when their contents resemble another type. Anchored strings are checked at their definition, not repeated through aliases; explicit string tags are supported, while other tags are ignored. YAML is parsed without constructing application objects. Plain and quoted values and multiline literal/folded values retain their original diagnostic locations, including quoted escape sequences. Invalid YAML produces an explicit error. Strings such as layout names and slugs are checked too; add intentional vocabulary to your dictionary. To disable front matter checks:
 
@@ -127,11 +140,21 @@ Spellcheck/Spelling:
       Enabled: false
 ```
 
-Before the first release, `Spellcheck/Comments` was renamed to `Spellcheck/Spelling`. Update any existing cop-specific configuration, `--only` arguments, or Ruby suppression directives to use the new name.
+### Plain text
 
-Liquid output expressions and tags are ignored, including expressions inside link destinations. English words retain accented letters and internal apostrophes; surrounding quotation marks and numeric identifiers such as commit hashes and ordinals are not checked.
+Plain `.txt` files are discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
 
-Plain `.txt` files are also discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are still ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
+## Autocorrection
+
+Dictionary suggestions may not match your intended meaning, so spelling corrections require `rubocop -A`; `rubocop -a` leaves spelling unchanged. To apply corrections, use:
+
+```sh
+bundle exec rubocop -A --only Spellcheck/Spelling
+```
+
+Only words with exactly one suggestion are corrected. Words with multiple suggestions, no suggestions, or mixed capitalization remain unchanged. Corrections preserve lowercase, title case, or uppercase and do not introduce multiple words or formatting characters. Review the resulting diff.
+
+Corrections apply to Ruby comments, Markdown prose, YAML front matter strings, and plain text. Surrounding punctuation, Markdown formatting, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value.
 
 ## Configuration
 
@@ -217,7 +240,7 @@ Spellcheck/Spelling:
 
 ## Scope and limitations
 
-The first release checks Ruby comments, including trailing comments, Markdown prose, and plain `.txt` files. Ruby checks skip shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations. It does not inspect Ruby strings, identifiers, symbols, or regular expressions.
+English words retain accented letters and internal apostrophes; surrounding quotation marks and numeric identifiers such as commit hashes and ordinals are not checked.
 
 Other comment content, including embedded code and documentation tags, is treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
 

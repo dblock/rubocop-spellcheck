@@ -5,6 +5,8 @@ module RuboCop
     module Spellcheck
       # Checks Ruby comments, Markdown prose, and plain text with shared dictionaries.
       class Spelling < Base
+        extend AutoCorrector
+
         BUNDLED_DATA = File.expand_path('../../../../data', __dir__).freeze
         DIRECTIVE = /
           \A\#\s*(?:!|(?:rubocop|standard|coding|encoding|frozen_string_literal|
@@ -51,20 +53,23 @@ module RuboCop
           checker.checksum
         end
 
-        private
+        def current_corrector
+          return super unless RuboCop::Spellcheck::ProseSource.file?(processed_source.path)
 
-        def front_matter_enabled?
-          cop_config.fetch('Markdown', {}).fetch('FrontMatter', {}).fetch('Enabled', true)
+          # Prose deliberately bypasses Ruby parsing, but its buffer can still be rewritten.
+          @current_corrector ||= Corrector.new(processed_source)
         end
 
+        private
+
         def check_markdown
-          if front_matter_enabled?
-            RuboCop::Spellcheck::FrontMatter.new(prose_buffer).each_span do |text, positions|
-              check_markdown_span(text, positions)
+          if cop_config.fetch('Markdown', {}).fetch('FrontMatter', {}).fetch('Enabled', true)
+            RuboCop::Spellcheck::FrontMatter.new(prose_buffer).each_span do |span|
+              check_markdown_span(span)
             end
           end
           RuboCop::Spellcheck::Markdown.new(prose_buffer).each_span do |text, positions|
-            check_markdown_span(text, positions)
+            check_markdown_span(RuboCop::Spellcheck::Span.new(text, positions))
           end
         end
 
@@ -84,25 +89,28 @@ module RuboCop
         end
 
         def check_comment(comment)
-          checker.misspellings(prose(comment.text)).each do |word, position|
+          text = mask_addresses(comment.text).gsub(/^=(?:begin|end)\b[^\n]*/) { |marker| ' ' * marker.length }
+          checker.misspellings(text).each do |word, position|
             first = comment.source_range.begin_pos + position
             report_word(word, first, first + word.length)
           end
         end
 
-        def check_markdown_span(text, positions)
-          text = text.sub(/\A['’]s\b/, '  ')
-          checker.misspellings(mask_addresses(text)).each do |word, position|
-            next unless word.match?(/\p{L}/)
-
-            report_word(word, positions.fetch(position).first, positions.fetch(position + word.length - 1).last)
+        def check_markdown_span(span)
+          text = mask_addresses(span.text.sub(/\A['’]s\b/, '  '))
+          span.each_misspelling(checker, text) do |word, first, last, correction, whole|
+            report_word(word, first, last, correction: correction, correctable: whole)
           end
         end
 
-        def report_word(word, first, last)
+        def report_word(word, first, last, correction: nil, correctable: true)
           range = Parser::Source::Range.new(prose_buffer, first, last)
           range = markdown_document.processed_range(range) if markdown_document
-          add_offense(range, message: spelling_message(word))
+          correction ||= RuboCop::Spellcheck::Correction.new(word, checker.suggestions(word))
+          replacement = correction.replacement
+          add_offense(range, message: correction.message) do |corrector|
+            corrector.replace(range, replacement) if replacement && correctable
+          end
         end
 
         def markdown_document
@@ -113,21 +121,8 @@ module RuboCop
           markdown_document ? markdown_document.buffer : processed_source.buffer
         end
 
-        def prose(text)
-          # Preserve character offsets while removing non-prose addresses and block delimiters.
-          mask_addresses(text).gsub(/^=(?:begin|end)\b[^\n]*/) { |marker| ' ' * marker.length }
-        end
-
         def mask_addresses(text)
           text.gsub(ADDRESS) { |address| ' ' * address.length }
-        end
-
-        def spelling_message(word)
-          suggestions = checker.suggestions(word)
-          message = "Misspelled word: `#{word}`."
-          return message if suggestions.empty?
-
-          "#{message} Did you mean #{suggestions.map { |suggestion| "`#{suggestion}`" }.join(', ')}?"
         end
       end
     end

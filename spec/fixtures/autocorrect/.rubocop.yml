@@ -1,0 +1,12 @@
+plugins:
+  - rubocop-spellcheck
+
+AllCops:
+  NewCops: enable
+  SuggestExtensions: false
+
+Spellcheck:
+  DictionaryFiles:
+    en:
+      - en.dic
+      - words.txt

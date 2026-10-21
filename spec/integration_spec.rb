@@ -4,6 +4,37 @@ require 'open3'
 require 'rbconfig'
 
 RSpec.describe 'RuboCop spelling integration' do
+  it 'corrects only unique suggestions with unsafe correction across source types and is stable on rerun' do
+    Dir.mktmpdir do |dir|
+      fixtures = File.expand_path('fixtures/autocorrect', __dir__)
+      FileUtils.cp_r(File.join(fixtures, 'input'), File.join(dir, 'input'))
+      %w[.rubocop.yml words.txt].each { |path| FileUtils.cp(File.join(fixtures, path), dir) }
+      %w[en.dic en.aff].each { |path| FileUtils.cp(File.expand_path("fixtures/#{path}", __dir__), dir) }
+      sources = fixture_contents(File.join(fixtures, 'input'))
+      corrected = fixture_contents(File.join(fixtures, 'expected'))
+      command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling',
+                 '--cache', 'false', '--format', 'json', 'input']
+      output, errors, status = Open3.capture3(*command, '-a', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(fixture_contents(File.join(dir, 'input'))).to eq(sources)
+      output, errors, status = Open3.capture3(*command, '-A', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      expect(JSON.parse(output).fetch('files').flat_map { |file| file.fetch('offenses') }
+                            .count { |offense| offense.fetch('corrected') }).to be_positive
+      expect(fixture_contents(File.join(dir, 'input'))).to eq(corrected)
+      output, errors, status = Open3.capture3(*command, '-A', chdir: dir)
+      expect(status.exitstatus).to eq(1), "#{output}\n#{errors}"
+      remaining = JSON.parse(output).fetch('files').reject { |file| file.fetch('offenses').empty? }
+      expect(remaining.map { |file| file.fetch('path') }).to eq(['input/ambiguous.txt', 'input/typed.md'])
+      expect(fixture_contents(File.join(dir, 'input'))).to eq(corrected)
+    end
+  end
+
+  def fixture_contents(directory)
+    Dir.glob('**/*', base: directory).select { |path| File.file?(File.join(directory, path)) }
+       .to_h { |path| [path, File.read(File.join(directory, path))] }
+  end
+
   it 'loads through plugins, checks offline, honors config paths, and invalidates its cache' do
     Dir.mktmpdir do |dir|
       dir = File.realpath(dir)
