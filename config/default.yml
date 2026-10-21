@@ -11,7 +11,9 @@ AllCops:
 Spellcheck/Spelling:
   Description: Check spelling in Ruby comments, Markdown prose, and plain text.
   Enabled: true
+  SafeAutoCorrect: false
   Markdown:
     FrontMatter:
       Enabled: true
   VersionAdded: "0.1"
+  VersionChanged: "0.2"

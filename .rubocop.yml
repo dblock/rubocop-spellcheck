@@ -3,6 +3,10 @@ plugins:
   - rubocop-rake
   - rubocop-rspec
 
+inherit_mode:
+  merge:
+    - Exclude
+
 Spellcheck:
   DictionaryFiles:
     en:
@@ -12,6 +16,8 @@ Spellcheck:
 AllCops:
   TargetRubyVersion: 3.2
   NewCops: enable
+  Exclude:
+    - spec/fixtures/autocorrect/**/*
 
 Naming/FileName:
   Exclude:
