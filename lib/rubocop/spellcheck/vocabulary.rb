@@ -40,7 +40,8 @@ module RuboCop
         updated = extended(retained(content), additions)
         File.write(@path, updated) unless content == updated
         write_configuration(config)
-        puts "Updated #{@path}. Review generated vocabulary: reported typos are accepted too."
+        puts "Updated #{RuboCop::PathUtil.relative_path(@path)}. " \
+             'Review generated vocabulary: reported typos are accepted too.'
       end
 
       private

@@ -54,6 +54,7 @@ RSpec.describe 'RuboCop spelling integration' do
       command = [RbConfig.ruby, '-S', 'rubocop', '--only', 'Spellcheck/Spelling', 'input']
       output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
       expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(output).to include('Updated .spellcheck.txt.')
       expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("quuxify\nwrold\n")
       configuration = File.read(File.join(dir, '.rubocop.yml'))
       expect(configuration).to include('# Keep this comment.')
@@ -132,6 +133,7 @@ RSpec.describe 'RuboCop spelling integration' do
       command = [RbConfig.ruby, '-S', 'rubocop']
       output, errors, status = Open3.capture3(*command, '--auto-gen-config', '--auto-gen-only-exclude', chdir: dir)
       expect(status.success?).to be(true), "#{output}\n#{errors}"
+      expect(output).to include('Updated .spellcheck.txt.', 'Updated nested/.spellcheck.txt.')
       expect(File.read(File.join(dir, '.spellcheck.txt'))).to eq("wrold\n")
       expect(File.read(File.join(dir, 'nested', '.spellcheck.txt'))).to eq("quuxify\n")
       todo = File.read(File.join(dir, '.rubocop_todo.yml'))
@@ -164,6 +166,7 @@ RSpec.describe 'RuboCop spelling integration' do
       output, errors, status = Open3.capture3(*command, '--auto-gen-config', chdir: dir)
       expect(status.success?).to be(true), "#{output}\n#{errors}"
       expect(File.read(File.join(dir, 'config', '.spellcheck.txt'))).to eq("wrold\n")
+      expect(output).to include('Updated config/.spellcheck.txt.')
       expect(File.exist?(File.join(dir, '.spellcheck.txt'))).to be(false)
       output, errors, status = Open3.capture3(*command, chdir: dir)
       expect(status.success?).to be(true), "#{output}\n#{errors}"
