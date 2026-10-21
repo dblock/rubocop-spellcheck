@@ -15,6 +15,8 @@ Autocorrection integration cases live in `spec/fixtures/autocorrect/input`, with
 
 The repository enables its own `Spellcheck/Spelling` cop in `.rubocop.yml`, so the default task and CI check Ruby comments and documentation using bundled English plus `.spellcheck.txt` for project vocabulary and legal terms in `LICENSE.txt`. Ruby string and identifier checks are explicitly disabled for repository lint; the plugin enables them by default. Their diagnostic and correction cases live in `spec/fixtures/ruby_spelling` and focused cop specs. Fixture trees are excluded from repository linting. Configured dictionaries and bundled data are excluded automatically.
 
+Vocabulary generation cases use `spec/fixtures/auto_gen_config`, also excluded from repository linting. CLI coverage checks generated words, retained dictionaries, repeated generation, nested configuration, and a subsequent spelling run.
+
 Development linting also enables `rubocop-rake` and `rubocop-rspec`. `Metrics/BlockLength` is disabled.
 
 For manual checks against a real dictionary:

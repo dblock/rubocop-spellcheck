@@ -3,6 +3,7 @@
 ### 0.2.0 (Next)
 
 * [#21](https://github.com/dblock/rubocop-spellcheck/pull/21): Check Ruby strings and identifiers by default, with independent opt-outs, source-mapped string corrections, and report-only identifier diagnostics - [@dblock](https://github.com/dblock).
+* [#20](https://github.com/dblock/rubocop-spellcheck/pull/20): Generate project vocabulary and dictionary configuration with `rubocop --auto-gen-config` instead of suppressing spelling checks - [@dblock](https://github.com/dblock).
 * [#19](https://github.com/dblock/rubocop-spellcheck/pull/19): Add parser-backed AsciiDoc spelling checks and autocorrection - [@dblock](https://github.com/dblock).
 * [#18](https://github.com/dblock/rubocop-spellcheck/pull/18): Check RDoc files and parse RDoc markup in Ruby comments, excluding code examples and link destinations - [@dblock](https://github.com/dblock).
 * [#17](https://github.com/dblock/rubocop-spellcheck/pull/17): Select front matter values with dotted inclusion and exclusion paths - [@dblock](https://github.com/dblock).

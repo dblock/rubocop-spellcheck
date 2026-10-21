@@ -24,6 +24,7 @@ AllCops:
   Exclude:
     - spec/fixtures/autocorrect/**/*
     - spec/fixtures/ruby_spelling/**/*
+    - spec/fixtures/auto_gen_config/**/*
 
 Naming/FileName:
   Exclude:

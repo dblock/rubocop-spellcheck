@@ -25,6 +25,7 @@ Spellcheck Ruby comments, strings, identifiers, and documentation with [RuboCop]
   - [Front matter paths](#front-matter-paths)
   - [Dictionary files](#dictionary-files)
   - [Adding project vocabulary](#adding-project-vocabulary)
+  - [Generating project vocabulary](#generating-project-vocabulary)
   - [Replacing dictionaries and adding languages](#replacing-dictionaries-and-adding-languages)
   - [Exclusions and suppression](#exclusions-and-suppression)
 - [Scope and limitations](#scope-and-limitations)
@@ -90,6 +91,14 @@ example.rb:1:21: C: Spellcheck/Spelling: Misspelled word: jumsp. Did you mean ju
 ```
 
 Each offense highlights the misspelled word and includes up to three suggestions when available.
+
+Fix typos, then generate an initial `.spellcheck.txt` for remaining project-specific words:
+
+```sh
+bundle exec rubocop --auto-gen-config --only Spellcheck/Spelling
+```
+
+The command adds both the bundled English dictionary and `.spellcheck.txt` to your configuration when no dictionaries are configured. Review the generated vocabulary: remaining typos are accepted too. See [Generating project vocabulary](#generating-project-vocabulary) for regeneration behavior.
 
 ## Other languages
 
@@ -254,6 +263,26 @@ RuboCop
 In `.spellcheck.txt`, blank lines and `#` comments are ignored. Words match case-insensitively, with no automatic inflection: list plural or other forms explicitly when needed. Unlike this literal word list, the bundled English dictionary uses Hunspell's `.dic` word list and `.aff` rules to recognize forms such as plurals and suffixes. Both formats can be combined in `DictionaryFiles`.
 
 There is no separate `AllowedWords`, `DictionaryPath`, or additional-files option. To use only your own word list, omit the gem path.
+
+### Generating project vocabulary
+
+Use the RuboCop configuration generator to build an initial vocabulary:
+
+```sh
+bundle exec rubocop --auto-gen-config
+```
+
+Spelling offenses create or update `.spellcheck.txt`. To generate vocabulary without configuring other cops:
+
+```sh
+bundle exec rubocop --auto-gen-config --only Spellcheck/Spelling
+```
+
+Every reported misspelling becomes accepted vocabulary, including genuine typos and words with correction suggestions. **Review the generated list**, remove mistakes, and fix them in the source. Generation does not correct source files.
+
+Generation rebuilds `.spellcheck.txt` from current spelling violations, checking without that vocabulary while retaining the other configured dictionaries. Words no longer needed are removed, including manually added entries; needed words retain their capitalization, and comments and blank lines are preserved. New words are converted to lowercase, sorted, and appended without case-insensitive duplicates. The generator updates `DictionaryFiles` in the effective local configuration, retaining every existing dictionary and language and appending `.spellcheck.txt`. With default dictionaries, bundled English is retained. Cop-specific overrides are updated at the cop level; otherwise the department setting is used.
+
+The vocabulary file follows the configuration's dictionary base directory. Nested `.rubocop.yml` files receive their own vocabulary when their files have spelling offenses; `--config` follows the usual RuboCop path rules. Only reported offenses participate, so exclusions, suppression directives, and the chosen file list still apply. Run generation against the full intended file set: entries needed only in omitted files will be removed. Runs with no spelling offenses do not create new vocabulary, but clear obsolete words from an existing vocabulary file.
 
 ### Replacing dictionaries and adding languages
 

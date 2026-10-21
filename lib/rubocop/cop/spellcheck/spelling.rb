@@ -84,10 +84,14 @@ module RuboCop
         end
 
         def checker
-          @checker ||= RuboCop::Spellcheck::Checker.new(
+          @checker ||= spelling_checker.new(
             dictionary_files: cop_config['DictionaryFiles'],
             base_directory: config.base_dir_for_path_parameters
           )
+        end
+
+        def spelling_checker
+          @options[:auto_gen_config] ? RuboCop::Spellcheck::Vocabulary::Checker : RuboCop::Spellcheck::Checker
         end
 
         def check_markdown_span(span)
