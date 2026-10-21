@@ -19,7 +19,8 @@ module RuboCop
         checker.misspellings(text).each do |word, position|
           next unless word.match?(/\p{L}/)
 
-          whole = Correction.whole_word?(positions, position, word.length)
+          whole = Correction.whole_word?(positions, position, word.length) &&
+                  Correction.standalone?(text, position, word.length)
           yield word, *range(position, word.length), correction(word, checker.suggestions(word)), whole
         end
       end

@@ -112,7 +112,7 @@ module RuboCop
           range = Parser::Source::Range.new(prose_buffer, first, last)
           range = markdown_document.processed_range(range) if markdown_document
           correction ||= RuboCop::Spellcheck::Correction.new(word, checker.suggestions(word))
-          replacement = correction.replacement
+          replacement = correction.replacement_in(prose_buffer.source, first, last)
           add_offense(range, message: correction.message) do |corrector|
             corrector.replace(range, replacement) if replacement && correctable
           end

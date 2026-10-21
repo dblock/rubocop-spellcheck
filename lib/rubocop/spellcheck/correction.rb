@@ -1,10 +1,19 @@
 # frozen_string_literal: true
 
+require 'kotoshu/algorithms/edit_distance'
+
 module RuboCop
   module Spellcheck
-    # Restricts unsafe corrections to unambiguous words with reproducible casing.
+    # Restricts unsafe corrections to unambiguous, single-edit lowercase typos.
     class Correction
       WORD = /\A[\p{L}\p{M}]+(?:['’][\p{L}\p{M}]+)*\z/
+
+      def self.standalone?(text, position, length)
+        before = text[0...position]
+        after = text[(position + length)..]
+        !before.match?(/[\p{L}\p{M}\p{N}_](?:[.-])?\z/) &&
+          !after.match?(/\A(?:[.-])?[\p{L}\p{M}\p{N}_]/)
+      end
 
       def self.whole_word?(positions, position, length)
         first = positions.fetch(position).first
@@ -19,13 +28,16 @@ module RuboCop
       end
 
       def replacement
-        return unless @suggestions.one?
+        return unless @suggestions.one? && @word == @word.downcase
 
-        suggestion = @suggestions.first
+        suggestion = @suggestions.first.downcase
         return unless WORD.match?(suggestion)
 
-        suggestion = capitalized(suggestion)
-        suggestion if suggestion && suggestion != @word
+        suggestion if Kotoshu::Algorithms::EditDistance.distance_with_threshold(@word, suggestion, 1) == 1
+      end
+
+      def replacement_in(source, first, last)
+        replacement if Correction.standalone?(source, first, last - first)
       end
 
       def message
@@ -33,18 +45,6 @@ module RuboCop
         return message if @suggestions.empty?
 
         "#{message} Did you mean #{@suggestions.map { |suggestion| "`#{suggestion}`" }.join(', ')}?"
-      end
-
-      private
-
-      def capitalized(suggestion)
-        if @word == @word.downcase
-          suggestion.downcase
-        elsif @word == @word.upcase
-          suggestion.upcase
-        elsif @word == @word.capitalize
-          suggestion.capitalize
-        end
       end
     end
   end

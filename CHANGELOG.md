@@ -2,6 +2,7 @@
 
 ### 0.2.0 (Next)
 
+* [#26](https://github.com/dblock/rubocop-spellcheck/pull/26): Restrict autocorrection to unique, single-edit lowercase typos outside dotted and identifier-like tokens; keep other suggestions report-only - [@dblock](https://github.com/dblock).
 * [#25](https://github.com/dblock/rubocop-spellcheck/pull/25): Skip spelling suggestions during vocabulary generation to speed up `--auto-gen-config` - [@dblock](https://github.com/dblock).
 * [#24](https://github.com/dblock/rubocop-spellcheck/pull/24): Fix spelling checks crashing on `__FILE__` in Ruby files and Markdown Ruby fences - [@dblock](https://github.com/dblock).
 * [#22](https://github.com/dblock/rubocop-spellcheck/pull/22): Check strings and opt-in identifiers in explicitly tagged Ruby Markdown fences; keep strings enabled and identifiers disabled by default in all Ruby checks - [@dblock](https://github.com/dblock).
