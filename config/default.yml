@@ -7,6 +7,7 @@ AllCops:
     - "**/*.md"
     - "**/*.markdown"
     - "**/*.txt"
+    - "**/*.rdoc"
 
 Spellcheck/Spelling:
   Description: Check spelling in Ruby comments, Markdown prose, and plain text.

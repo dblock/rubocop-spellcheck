@@ -14,6 +14,7 @@ Spellcheck Ruby comments, Markdown prose, and plain text with [RuboCop](https://
 - [Other languages](#other-languages)
 - [Supported files](#supported-files)
   - [Ruby comments](#ruby-comments)
+  - [RDoc](#rdoc)
   - [Markdown](#markdown)
   - [YAML front matter](#yaml-front-matter)
   - [Plain text](#plain-text)
@@ -115,6 +116,12 @@ The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloa
 ### Ruby comments
 
 Ruby comments, including trailing and block comments, are checked. Shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations are skipped. Ruby strings, identifiers, symbols, and regular expressions are not inspected. URLs and email addresses are ignored.
+
+Adjacent comment lines are parsed together as RDoc, so indented examples and inline code are excluded rather than treated as prose. One conventional space after `#` is removed before parsing; additional indentation is retained. This also applies to block comments.
+
+### RDoc
+
+Standalone `.rdoc` files are discovered automatically and parsed with RDoc. Headings, paragraphs, and list descriptions are checked, including emphasis and link labels. Indented verbatim examples, inline code (`+code+`, backticks, `<tt>`, and `<code>`), link destinations, and colon-style documentation directive lines are skipped. Directives such as `:include:` are never executed. Diagnostics and autocorrection retain original source locations and markup, including in Ruby comments.
 
 ### Markdown
 
@@ -276,7 +283,7 @@ Spellcheck/Spelling:
 
 English words retain accented letters and internal apostrophes; surrounding quotation marks and numeric identifiers such as commit hashes and ordinals are not checked.
 
-Other comment content, including embedded code and documentation tags, is treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
+Ruby comments use RDoc markup, not YARD or other documentation syntaxes. Other documentation tags are treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
 
 Kotoshu ships precompiled gems for macOS, Linux, and Windows. Building native dependencies from source on other platforms may require a Rust toolchain.
 

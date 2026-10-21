@@ -5,7 +5,7 @@ module RuboCop
     # Prose files use the non-Ruby callback, with an untouched source buffer.
     module ProseSource
       def self.file?(path)
-        Markdown.file?(path) || text_file?(path)
+        Markdown.file?(path) || RDoc.file?(path) || text_file?(path)
       end
 
       def self.text_file?(path)

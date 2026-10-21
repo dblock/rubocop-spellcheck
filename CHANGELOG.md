@@ -2,6 +2,7 @@
 
 ### 0.2.0 (Next)
 
+* [#18](https://github.com/dblock/rubocop-spellcheck/pull/18): Check RDoc files and parse RDoc markup in Ruby comments, excluding code examples and link destinations - [@dblock](https://github.com/dblock).
 * [#17](https://github.com/dblock/rubocop-spellcheck/pull/17): Select front matter values with dotted inclusion and exclusion paths - [@dblock](https://github.com/dblock).
 * [#16](https://github.com/dblock/rubocop-spellcheck/pull/16): Support Markdown HTML comment directives for spelling suppression - [@dblock](https://github.com/dblock).
 * [#15](https://github.com/dblock/rubocop-spellcheck/pull/15): Add spelling autocorrection for words with exactly one dictionary suggestion - [@dblock](https://github.com/dblock).

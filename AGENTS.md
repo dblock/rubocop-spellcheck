@@ -1,6 +1,6 @@
 # Working on rubocop-spellcheck
 
-Read CONTRIBUTING.md before making changes. This gem checks Ruby comments, Markdown prose, and plain text through Kotoshu; Ruby strings, identifiers, and grammar are outside its scope. Spelling autocorrection requires `rubocop -A` and is limited to words with exactly one suggestion.
+Read CONTRIBUTING.md before making changes. This gem checks Ruby comments, Markdown, RDoc, and plain text through Kotoshu; Ruby strings, identifiers, and grammar are outside its scope. Ruby comments use RDoc markup. Spelling autocorrection requires `rubocop -A` and is limited to words with exactly one suggestion.
 
 * Keep the implementation small: one Spellcheck/Spelling cop, source-specific extraction, and one shared Kotoshu adapter. Never mutate Kotoshu's global configuration or download resources while linting.
 * Default English uses the bundled dictionary without setup. DictionaryFiles maps language codes to paths; explicit maps replace the default. Resolve gem:name/path inside installed gems, ordinary paths relative to configuration. Never use Kotoshu-managed resources. Ship dictionary files with their license and pinned provenance.

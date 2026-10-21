@@ -26,6 +26,7 @@ NONINFRINGEMENT
 PRs
 precompiled
 README
+RDoc
 relicense
 RSpec
 RubyGems
@@ -36,3 +37,5 @@ tokenization
 toolchain
 txt
 YAML
+backticks
+syntaxes
