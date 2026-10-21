@@ -9,15 +9,11 @@ bundle install
 bundle exec rake
 ```
 
-The default task runs RSpec and RuboCop. Unit tests use tiny local Hunspell fixtures and need no downloaded dictionaries or network access. The integration spec uses the actual bundled English dictionary with an empty, isolated Kotoshu cache and exercises the real RuboCop CLI, plugin discovery, and cache invalidation. Coverage is written to `coverage/`.
+The default task runs RSpec and RuboCop without network access. Tests use local fixtures and the bundled dictionary; CLI integration covers plugin loading, corrections, vocabulary generation, and caching. Coverage is written to `coverage/`.
 
-Autocorrection integration cases live in `spec/fixtures/autocorrect/input`, with matching files in `expected`. The spec runs the CLI against a temporary copy and compares complete file contents. The fixture tree is excluded from repository linting because it intentionally contains spelling offenses and unchanged code.
+Add focused regression specs with precise offense ranges. Autocorrection fixtures pair `input` and `expected` files; CLI tests use temporary copies. Intentional spelling fixtures are excluded from repository lint.
 
-The repository enables its own `Spellcheck/Spelling` cop in `.rubocop.yml`, so the default task and CI check Ruby comments and documentation using bundled English plus `.spellcheck.txt` for project vocabulary and legal terms in `LICENSE.txt`. Ruby string and identifier checks are explicitly disabled for repository lint; the plugin enables them by default. Their diagnostic and correction cases live in `spec/fixtures/ruby_spelling` and focused cop specs. Fixture trees are excluded from repository linting. Configured dictionaries and bundled data are excluded automatically.
-
-Vocabulary generation cases use `spec/fixtures/auto_gen_config`, also excluded from repository linting. CLI coverage checks generated words, retained dictionaries, repeated generation, nested configuration, and a subsequent spelling run.
-
-Development linting also enables `rubocop-rake` and `rubocop-rspec`. `Metrics/BlockLength` is disabled.
+Repository lint checks comments and documentation using `.spellcheck.txt`; Ruby strings and identifiers are disabled for this repository, though enabled by default for users. CI tests minimum Ruby 3.2 and latest Ruby 4.0, including minimum-supported RuboCop 1.72.1 on Ruby 3.2.
 
 For manual checks against a real dictionary:
 
@@ -25,16 +21,16 @@ For manual checks against a real dictionary:
 bundle exec rubocop --plugin rubocop-spellcheck --only Spellcheck/Spelling path/to/file.rb
 ```
 
-Add focused regression specs for changed behavior, including precise offense ranges. Update README documentation and add a CHANGELOG entry under the next version with the PR number and contributor attribution. Keep Markdown paragraphs on one line.
+Update relevant README documentation and add a CHANGELOG entry under the next version with the PR number and contributor attribution. Keep Markdown paragraphs on one line.
 
-The bundled English dictionary and its full license must ship together. See [data/en/README.md](data/en/README.md) for provenance and update instructions. DictionaryFiles maps language codes to explicit gem-relative or local Hunspell/text files, never a Kotoshu-managed resource cache.
+The bundled English dictionary and its full license must ship together. See [data/en/README.md](data/en/README.md) for provenance.
 
 ## Resource maintenance
 
-Run `ruby script/update_resources.rb` to update both the Kotoshu dependency to the latest stable RubyGems release and the bundled English dictionary/license to a single pinned revision of `kotoshu/dictionaries`' `v1` branch. The script needs network access, but linting and tests do not. It leaves files untouched when the upstream contents and dependency are unchanged; all downloads complete before any changes are written.
+Run `ruby script/update_resources.rb` to update Kotoshu and the bundled dictionary/license. This requires network access; linting and tests do not.
 
-The **Update spelling resources** workflow runs monthly and supports manual dispatch. Changes are validated on the minimum supported Ruby with RSpec, RuboCop, and a gem build before [peter-evans/create-pull-request](https://github.com/peter-evans/create-pull-request) opens or refreshes one `maintenance/spelling-resources` PR. The action is pinned to an immutable release commit and manages branch updates and commits. Nothing is automatically merged. Review dictionary behavior, the complete license diff, upstream provenance, and Kotoshu compatibility before merging.
+The **Update spelling resources** workflow runs monthly or on manual dispatch. It validates changes on minimum Ruby and opens or updates `maintenance/spelling-resources`. Nothing is automatically merged. Review dictionary behavior, license changes, provenance, and Kotoshu compatibility.
 
-Enable **Allow GitHub Actions to create and approve pull requests** in the repository's Actions settings. By default the workflow uses `GITHUB_TOKEN`; GitHub does not trigger additional push/PR workflows for changes made with that token, so the maintenance workflow validates changes itself and links its run in the PR. To also trigger the normal PR matrix and Danger, configure a narrowly scoped `MAINTENANCE_TOKEN` secret with repository contents and pull-request write access. A token cannot bypass an organization policy that prohibits automated PR creation.
+Enable **Allow GitHub Actions to create and approve pull requests** in Actions settings. The default `GITHUB_TOKEN` does not trigger downstream CI, so the maintenance workflow validates changes itself. To trigger normal PR checks too, configure `MAINTENANCE_TOKEN` with repository contents and pull-request write access.
 
 Run `bundle exec rake` before committing. Do not introduce implicit resource downloads or silently skip unavailable dictionaries. Do not publish a gem or tag a release without maintainer authorization.
