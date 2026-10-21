@@ -2,6 +2,7 @@
 
 ### 0.2.0 (Next)
 
+* [#28](https://github.com/dblock/rubocop-spellcheck/pull/28): Exclude `require`, `require_relative`, `load`, and `autoload` paths and `gem` names and version requirements from spelling checks in Ruby files and Markdown Ruby fences - [@dblock](https://github.com/dblock).
 * [#29](https://github.com/dblock/rubocop-spellcheck/pull/29): Display generated vocabulary paths relative to the working directory, matching RuboCop output - [@dblock](https://github.com/dblock).
 * [#27](https://github.com/dblock/rubocop-spellcheck/pull/27): Correct lowercase and title-case typos when the first suggestion is one edit away, even when multiple suggestions exist; require dictionary-accepted replacements to prevent correction loops and retain uppercase, mixed-case, and technical-token guards - [@dblock](https://github.com/dblock).
 * [#26](https://github.com/dblock/rubocop-spellcheck/pull/26): Restrict autocorrection to unique, single-edit lowercase typos outside dotted and identifier-like tokens; keep other suggestions report-only - [@dblock](https://github.com/dblock).

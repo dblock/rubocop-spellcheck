@@ -17,6 +17,18 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     expect(offenses("```ruby\nhello = __FILE__; world = 'wrold'\n```\n")).to eq([[2, 27, 'wrold']])
   end
 
+  it 'skips require paths in Ruby fences while checking adjacent prose strings' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = "```ruby\nrequire 'typpo'\nKernel.require_relative \"typpo/\#{hello}\"\nputs 'wrold'\n```\n"
+    expect(offenses(source)).to eq([[4, 6, 'wrold']])
+  end
+
+  it 'skips other dependency names and paths in Ruby fences without skipping prose' do
+    config['Spellcheck/Spelling']['Ruby']['Identifiers'] = false
+    source = "```ruby\nload 'typpo'\nautoload :Hello, 'typpo'\ngem 'typpo', 'wrold'\nwarn 'wrold'\n```\n"
+    expect(offenses(source)).to eq([[5, 6, 'wrold']])
+  end
+
   def offenses(source)
     _investigate(cop, parse_source(source, 'example.md')).sort.map do |offense|
       [offense.line, offense.column, offense.location.source]

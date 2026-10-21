@@ -125,7 +125,7 @@ Comments are parsed as RDoc, excluding indented examples and inline code.
 
 ### Ruby strings and identifiers
 
-Strings include ordinary and percent literals, string arrays, heredocs, and literal text inside interpolation. Contents are checked literally, not as markup. Symbols, regular expression text, and shell-command text are excluded; Ruby expressions inside interpolation are still checked. Ruby code is never evaluated.
+Strings include ordinary and percent literals, string arrays, heredocs, and literal text inside interpolation. Contents are checked literally, not as markup. Paths passed to `require`, `require_relative`, `load`, and `autoload`, plus `gem` names and version requirements, are excluded. Symbols, regular expression text, and shell-command text are also excluded; Ruby expressions inside interpolation are still checked. Ruby code is never evaluated.
 
 Identifier checking is disabled by default. When enabled, every occurrence is checked, including method calls, definitions, constants, arguments, and variables. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, and case boundaries. Add intentional API names and abbreviations to your project vocabulary.
 
