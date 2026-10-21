@@ -58,7 +58,7 @@ bundle install
 bundle exec rubocop
 ```
 
-By default, the plugin uses the bundled American English dictionary. No dictionary setup, external cache, or network access is needed.
+No dictionary setup or network access is needed.
 
 ## Usage
 
@@ -78,16 +78,9 @@ For example, given `example.rb`:
 Running `bundle exec rubocop --only Spellcheck/Spelling example.rb` reports:
 
 ```text
-Inspecting 1 file
-C
-
-Offenses:
-
 example.rb:1:21: C: Spellcheck/Spelling: Misspelled word: jumsp. Did you mean jumps, jump, jumpy?
 # The red brown fox jumsp over the lazy dog.
                     ^^^^^
-
-1 file inspected, 1 offense detected
 ```
 
 Each offense highlights the misspelled word and includes up to three suggestions when available.
@@ -120,7 +113,7 @@ Spellcheck:
       - dictionaries/de/de.dic
 ```
 
-The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloaded license and preserve its notices when committing or redistributing dictionary files. Commit these files or provision the same files in CI for reproducible results. You can also point to Hunspell files supplied by your operating system. The plugin does not use Kotoshu's resource cache, registration, or setup command; linting never downloads anything.
+The matching `.aff` file is required. Commit both files and their license, or provision them in CI. Review each dictionary's license before redistributing it; linting never downloads dictionaries.
 
 ## Supported files
 
@@ -128,13 +121,13 @@ The matching `dictionaries/de/de.aff` is loaded alongside it. Review the downloa
 
 Ruby comments, including trailing and block comments, are checked. Shebangs, magic comments, RuboCop/Standard directives, and Sorbet `typed:` declarations are skipped. URLs and email addresses are ignored.
 
-Adjacent comment lines are parsed together as RDoc, so indented examples and inline code are excluded rather than treated as prose. One conventional space after `#` is removed before parsing; additional indentation is retained. This also applies to block comments.
+Comments are parsed as RDoc, excluding indented examples and inline code.
 
 ### Ruby strings and identifiers
 
-Ruby strings and identifiers are checked by default. Strings include ordinary and percent literals, string arrays, heredocs, and the literal portions of interpolated strings. Escape sequences are decoded without evaluating Ruby code, with diagnostics mapped back to the original source. String contents are checked literally, not as Markdown or RDoc; URLs and email addresses are ignored. Symbols (including symbol hash keys), regular expression text, and shell-command text are excluded. Ruby expressions inside interpolation are still checked.
+Strings include ordinary and percent literals, string arrays, heredocs, and literal text inside interpolation. Contents are checked literally, not as markup. Symbols, regular expression text, and shell-command text are excluded; Ruby expressions inside interpolation are still checked. Ruby code is never evaluated.
 
-Identifiers include method definitions and calls, class/module/constant names, arguments, and local, instance, class, and global variables. Every occurrence is checked. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, lowercase-to-uppercase transitions, and acronym boundaries. Sigils and method punctuation are not words. Acronyms, abbreviations, external API names, and other intentional vocabulary may need project dictionary entries.
+Every identifier occurrence is checked, including method calls, definitions, constants, arguments, and variables. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, and case boundaries. Add intentional API names and abbreviations to your project vocabulary.
 
 Disable either scope independently, or disable both to retain comment-only Ruby checks:
 
@@ -149,7 +142,7 @@ Standard Ruby suppression directives apply to all three scopes. Identifier error
 
 ### RDoc
 
-Standalone `.rdoc` files are discovered automatically and parsed with RDoc. Headings, paragraphs, and list descriptions are checked, including emphasis and link labels. Indented verbatim examples, inline code (`+code+`, backticks, `<tt>`, and `<code>`), link destinations, and colon-style documentation directive lines are skipped. Directives such as `:include:` are never executed. Diagnostics and autocorrection retain original source locations and markup, including in Ruby comments.
+`.rdoc` files and Ruby comments use RDoc parsing. Headings, paragraphs, lists, and link labels are checked; code, link destinations, and documentation directives are skipped. Directives such as `:include:` are never executed.
 
 ### Markdown
 
@@ -161,13 +154,11 @@ The cop discovers `.md` and `.markdown` files and checks their prose:
 Check [the spelling](https://example.com) but not `code_identifiers`.
 ```
 
-Markdown headings, paragraphs, lists, blockquotes, table cells, link labels, image descriptions, and footnote text are checked. Code blocks and inline code, link destinations and reference identifiers, and HTML tags/comments and HTML blocks are skipped. URLs and email addresses are ignored. HTML entities and escaped punctuation are decoded with offenses mapped back to the original source. No `rubocop-md` plugin is required; Ruby code inside Markdown blocks is not inspected.
-
-Liquid output expressions and tags are ignored, including expressions inside link destinations.
+Prose, headings, lists, tables, link labels, image descriptions, and footnotes are checked. Code, link destinations, HTML, Liquid expressions, URLs, and email addresses are skipped. No `rubocop-md` plugin is required.
 
 ### YAML front matter
 
-YAML front matter checks string values recursively, including values inside mappings and arrays. Keys and strongly typed values such as numbers, booleans, dates, timestamps, and nulls are skipped. Quoted values are strings even when their contents resemble another type. Anchored strings are checked at their definition, not repeated through aliases; explicit string tags are supported, while other tags are ignored. YAML is parsed without constructing application objects. Plain and quoted values and multiline literal/folded values retain their original diagnostic locations, including quoted escape sequences. Invalid YAML produces an explicit error. Strings such as layout names and slugs are checked too; add intentional vocabulary to your dictionary. To disable front matter checks:
+String values are checked recursively, including multiline values and arrays. Keys, numbers, booleans, dates, and nulls are skipped. Layout names and slugs are strings too; use [front matter paths](#front-matter-paths) to select prose fields. Invalid YAML produces an error. To disable these checks:
 
 ```yaml
 Spellcheck/Spelling:
@@ -178,13 +169,11 @@ Spellcheck/Spelling:
 
 ### AsciiDoc
 
-The cop discovers `.adoc` and `.asciidoc` files and uses [Asciidoctor](https://asciidoctor.org/) to check headings, paragraphs, list items, admonitions, block titles, and table cells. Formatted prose, link labels, and footnotes retain their original diagnostic and correction locations, including Unicode and encoded characters.
-
-Source and literal blocks, inline code, comments, passthrough content, attribute definitions/references, link destinations, and image/math/keyboard macros are skipped. Includes are not read, extensions are disabled, and Asciidoctor runs in secure mode; linting does not render the document or access external resources. Ruby comments are not interpreted as AsciiDoc.
+`.adoc` and `.asciidoc` files use [Asciidoctor](https://asciidoctor.org/) to check prose, headings, lists, tables, and link labels. Code, comments, attributes, link destinations, and macros are skipped. Includes and extensions are disabled; linting does not render documents or access external resources.
 
 ### Plain text
 
-Plain `.txt` files are discovered by default. Their entire contents are checked literally, including text that looks like Markdown code or headings; URLs and email addresses are ignored. Configured dictionary files (including symbolic links to them) and this gem's bundled `data/` resources are excluded from spelling checks, so dictionary words and license/provenance files are not treated as prose. Hunspell `.dic` and `.aff` files are not included by default. Other text files, including project license files, can be excluded with normal `Spellcheck/Spelling` configuration.
+`.txt` files are checked literally, excluding URLs and email addresses. Configured dictionaries and bundled resources are excluded automatically. Use normal RuboCop exclusions for other files you do not want checked.
 
 ## Autocorrection
 
@@ -196,7 +185,7 @@ bundle exec rubocop -A --only Spellcheck/Spelling
 
 Only words with exactly one suggestion are corrected. Words with multiple suggestions, no suggestions, or mixed capitalization remain unchanged. Corrections preserve lowercase, title case, or uppercase and do not introduce multiple words or formatting characters. Review the resulting diff.
 
-Corrections apply to Ruby comments and strings, Markdown prose, YAML front matter strings, RDoc, AsciiDoc prose, and plain text. Identifiers are never renamed. Surrounding punctuation, markup, string delimiters, YAML quotes, and excluded content remain unchanged. Escaped letters inside a corrected word may become literal letters; Ruby delimiters and YAML apostrophes are escaped where required. A plain YAML value is not corrected into a boolean, null, or other typed value. Corrections that would introduce a heredoc terminator are withheld.
+Corrections preserve surrounding markup and string delimiters; escaped letters may become literal letters. Unsafe replacements such as a heredoc terminator or a typed YAML value are withheld. Identifiers are never renamed.
 
 ## Configuration
 
@@ -219,9 +208,9 @@ Spellcheck/Spelling:
         - metadata.internal
 ```
 
-Paths match exact, case-sensitive key names from the root; dots separate nested keys. Selecting a parent such as `metadata` includes its descendants. Array items use the same path without numeric indices, so `authors.description` selects descriptions in every author mapping. Dots in literal key names and complex YAML keys cannot be addressed by these selectors; wildcards are not supported.
+Paths are case-sensitive, with dots separating nested keys. Selecting a parent includes its descendants; `authors.description` selects descriptions in every author mapping without array indices. Wildcards and literal dots in key names are not supported.
 
-`Include: null` checks all paths; `Include: []` checks none. `Exclude` defaults to an empty list and always takes precedence, including for entire nested mappings. Filtering applies to both diagnostics and autocorrection, without affecting Markdown body prose. `Enabled: false` still disables all front matter checking.
+`Include: null` checks all paths; `Include: []` checks none. `Exclude` always takes precedence. These settings do not affect Markdown body prose.
 
 ### Dictionary files
 
@@ -234,13 +223,13 @@ Spellcheck:
       - gem:rubocop-spellcheck/data/en/en.dic
 ```
 
-An explicit map replaces the default selection completely; no English dictionary is implicitly retained. Each language key determines Kotoshu's tokenization for its dictionaries. A word passes if any configured dictionary accepts it. This supports multilingual comments, but a typo that is valid in another active language will pass. There is no language detection or separate `Language` setting.
+An explicit map replaces the defaults: retain the English path if you still want English. A word passes if any configured dictionary accepts it; there is no automatic language detection.
 
-Paths beginning with `gem:<gem-name>/` resolve relative to that installed gem's root; for example, `gem:rubocop-spellcheck/data/en/en.dic`. Other paths are relative to the effective RuboCop configuration directory (or working directory without a configuration file). No ERB is needed. Missing gems, files, empty language lists, and unsupported file extensions produce explicit errors; there is no fallback.
+`gem:<gem-name>/` paths resolve inside the installed gem. Other paths are relative to the effective RuboCop configuration directory. Missing dictionaries and invalid settings produce errors rather than falling back to defaults.
 
 Hunspell `.dic` files load their matching `.aff` file in the same directory with the same basename. Plain `.txt` files contain literal words, one per line, matched case-insensitively without automatic inflection. Blank lines and lines starting with `#` are ignored; phrases are rejected.
 
-Settings can also be overridden for `Spellcheck/Spelling` using normal RuboCop department/cop configuration. RuboCop merges explicitly inherited hashes by its normal configuration rules; within an explicit map, arrays replace inherited arrays unless `inherit_mode` says otherwise. Kotoshu's personal dictionary is not consulted. Changes to any selected dictionary or affix file invalidate cached results.
+Normal RuboCop inheritance and cop-specific overrides apply. Dictionary changes invalidate cached results; Kotoshu's personal dictionary is not used.
 
 ### Adding project vocabulary
 
@@ -260,9 +249,7 @@ Kotoshu
 RuboCop
 ```
 
-In `.spellcheck.txt`, blank lines and `#` comments are ignored. Words match case-insensitively, with no automatic inflection: list plural or other forms explicitly when needed. Unlike this literal word list, the bundled English dictionary uses Hunspell's `.dic` word list and `.aff` rules to recognize forms such as plurals and suffixes. Both formats can be combined in `DictionaryFiles`.
-
-There is no separate `AllowedWords`, `DictionaryPath`, or additional-files option. To use only your own word list, omit the gem path.
+Words match case-insensitively; list plural and other forms explicitly. Blank lines and `#` comments are ignored. To use only your own word list, omit the gem path.
 
 ### Generating project vocabulary
 
@@ -280,9 +267,9 @@ bundle exec rubocop --auto-gen-config --only Spellcheck/Spelling
 
 Every reported misspelling becomes accepted vocabulary, including genuine typos and words with correction suggestions. **Review the generated list**, remove mistakes, and fix them in the source. Generation does not correct source files.
 
-Generation rebuilds `.spellcheck.txt` from current spelling violations, checking without that vocabulary while retaining the other configured dictionaries. Words no longer needed are removed, including manually added entries; needed words retain their capitalization, and comments and blank lines are preserved. New words are converted to lowercase, sorted, and appended without case-insensitive duplicates. The generator updates `DictionaryFiles` in the effective local configuration, retaining every existing dictionary and language and appending `.spellcheck.txt`. With default dictionaries, bundled English is retained. Cop-specific overrides are updated at the cop level; otherwise the department setting is used.
+Rerunning rebuilds `.spellcheck.txt` from current violations without accepting its existing words during checking. Unneeded entries are removed, including manually added ones. Comments and capitalization of retained words are preserved; new words are lowercase, sorted, and added without duplicates. The command adds the vocabulary to `DictionaryFiles` while retaining existing dictionaries, or bundled English when using defaults.
 
-The vocabulary file follows the configuration's dictionary base directory. Nested `.rubocop.yml` files receive their own vocabulary when their files have spelling offenses; `--config` follows the usual RuboCop path rules. Only reported offenses participate, so exclusions, suppression directives, and the chosen file list still apply. Run generation against the full intended file set: entries needed only in omitted files will be removed. Runs with no spelling offenses do not create new vocabulary, but clear obsolete words from an existing vocabulary file.
+Vocabulary is written beside the effective configuration, including nested configurations. Exclusions and suppression still apply. **Run against the full intended file set:** words needed only in omitted files will be removed. Clean runs clear obsolete entries but do not create a new vocabulary file.
 
 ### Replacing dictionaries and adding languages
 
@@ -315,7 +302,7 @@ Spellcheck/Spelling:
 # rubocop:enable Spellcheck/Spelling
 ```
 
-Ruby inline directives apply to comments. In Markdown, use HTML comments to disable spelling for a block:
+Ruby directives apply to comments, strings, and identifiers. In Markdown, use HTML comments:
 
 ```markdown
 <!-- rubocop:disable Spellcheck/Spelling -->
@@ -323,7 +310,7 @@ Intentional project vocabulary.
 <!-- rubocop:enable Spellcheck/Spelling -->
 ```
 
-A trailing `<!-- rubocop:disable Spellcheck/Spelling -->` or `<!-- rubocop:todo Spellcheck/Spelling -->` suppresses only its own line. A standalone `todo` also applies only to its own line. Directives accept `all` or comma-separated cop names and an optional reason after ` -- `. Directives inside code, Liquid expressions, or YAML front matter are not interpreted. Suppression prevents both diagnostics and autocorrection.
+A trailing `disable` or any `todo` applies only to its own line. Directives accept `all`, cop lists, and reasons after ` -- `. Directives inside code, Liquid, or front matter are ignored. Suppression prevents diagnostics and autocorrection.
 
 To check only one format, use standard file inclusion:
 
@@ -351,4 +338,4 @@ Copyright (c) 2026 Daniel (dB.) Doubrovkine. MIT License; see [LICENSE.txt](LICE
 
 Kotoshu is a separate BSD-2-Clause dependency. The bundled SCOWL-derived American English dictionary carries its own copyright and redistribution terms; see [its full license](data/en/LICENSE) and [pinned provenance](data/en/README.md). Dictionary files and notices are included in the packaged gem.
 
-As of October 20, 2026, `kotoshu/dictionaries` describes its repository as MIT-licensed, but individual dictionaries retain their own licenses. The English package declares [`MIT AND BSD`](https://github.com/kotoshu/dictionaries/blob/v1/en/spelling/package.json); its [full notice](data/en/LICENSE) includes SCOWL's permissive redistribution grant, Ispell's BSD-style terms, and constituent word-list notices. The German dictionary used in the download example is [`GPL-2.0 OR GPL-3.0`](https://github.com/kotoshu/dictionaries/blob/v1/de/spelling/package.json), confirmed by its [license notice](https://github.com/kotoshu/dictionaries/blob/v1/de/spelling/license). German is not bundled with this gem. Other languages vary: inspect each dictionary's own license before using or redistributing it; the repository's MIT label does not relicense those files.
+Other dictionaries have their own licenses regardless of the dictionary repository's license. The German example is [`GPL-2.0 OR GPL-3.0`](https://github.com/kotoshu/dictionaries/blob/v1/de/spelling/license) and is not bundled. Review each dictionary's notices before redistributing it.

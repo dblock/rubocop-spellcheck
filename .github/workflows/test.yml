@@ -2,6 +2,7 @@ name: Tests
 
 on:
   push:
+    branches: [master]
   pull_request:
 
 permissions:
@@ -14,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.2', '3.3', '3.4', '4.0']
+        ruby: ['3.2', '4.0']
         rubocop: ['~> 1.72']
         include:
           - ruby: '3.2'
@@ -31,7 +32,7 @@ jobs:
           bundler-cache: true
       - run: bundle exec rspec
       - uses: actions/upload-artifact@v4
-        if: matrix.ruby == '3.4'
+        if: matrix.ruby == '4.0'
         with:
           name: coverage
           path: coverage/
