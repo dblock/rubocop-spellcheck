@@ -2,6 +2,7 @@
 
 ### 0.2.0 (Next)
 
+* [#29](https://github.com/dblock/rubocop-spellcheck/pull/29): Display generated vocabulary paths relative to the working directory, matching RuboCop output - [@dblock](https://github.com/dblock).
 * [#27](https://github.com/dblock/rubocop-spellcheck/pull/27): Correct lowercase and title-case typos when the first suggestion is one edit away, even when multiple suggestions exist; require dictionary-accepted replacements to prevent correction loops and retain uppercase, mixed-case, and technical-token guards - [@dblock](https://github.com/dblock).
 * [#26](https://github.com/dblock/rubocop-spellcheck/pull/26): Restrict autocorrection to unique, single-edit lowercase typos outside dotted and identifier-like tokens; keep other suggestions report-only - [@dblock](https://github.com/dblock).
 * [#25](https://github.com/dblock/rubocop-spellcheck/pull/25): Skip spelling suggestions during vocabulary generation to speed up `--auto-gen-config` - [@dblock](https://github.com/dblock).
