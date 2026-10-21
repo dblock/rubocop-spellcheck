@@ -1,6 +1,6 @@
 ## Changelog
 
-### 0.2.0 (Next)
+### 0.2.0 (2026/10/21)
 
 * [#28](https://github.com/dblock/rubocop-spellcheck/pull/28): Exclude `require`, `require_relative`, `load`, and `autoload` paths and `gem` names and version requirements from spelling checks in Ruby files and Markdown Ruby fences - [@dblock](https://github.com/dblock).
 * [#29](https://github.com/dblock/rubocop-spellcheck/pull/29): Display generated vocabulary paths relative to the working directory, matching RuboCop output - [@dblock](https://github.com/dblock).
@@ -17,8 +17,6 @@
 * [#16](https://github.com/dblock/rubocop-spellcheck/pull/16): Support Markdown HTML comment directives for spelling suppression - [@dblock](https://github.com/dblock).
 * [#15](https://github.com/dblock/rubocop-spellcheck/pull/15): Add spelling autocorrection for words with exactly one dictionary suggestion - [@dblock](https://github.com/dblock).
 * [#14](https://github.com/dblock/rubocop-spellcheck/pull/14): Reuse loaded dictionaries and word verdicts across file investigations instead of rebuilding them for every file - [@dblock](https://github.com/dblock).
-* Your contribution here.
-
 ### 0.1.0 (2026/10/20)
 
 * [#12](https://github.com/dblock/rubocop-spellcheck/pull/12): Preserve Markdown parsing and use original prose buffers - [@dblock](https://github.com/dblock).
