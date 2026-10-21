@@ -13,7 +13,7 @@ The default task runs RSpec and RuboCop without network access. Tests use local 
 
 Add focused regression specs with precise offense ranges. Autocorrection fixtures pair `input` and `expected` files; CLI tests use temporary copies. Intentional spelling fixtures are excluded from repository lint.
 
-Repository lint checks comments and documentation using `.spellcheck.txt`; Ruby strings and identifiers are disabled for this repository, though enabled by default for users. CI tests minimum Ruby 3.2 and latest Ruby 4.0, including minimum-supported RuboCop 1.72.1 on Ruby 3.2.
+Repository lint checks comments and documentation using `.spellcheck.txt`; Ruby strings are disabled for this repository, though enabled by default for users. Identifiers are opt-in. CI tests minimum Ruby 3.2 and latest Ruby 4.0, including minimum-supported RuboCop 1.72.1 on Ruby 3.2.
 
 For manual checks against a real dictionary:
 

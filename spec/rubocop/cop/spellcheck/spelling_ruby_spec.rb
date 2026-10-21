@@ -4,7 +4,7 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
   let(:config) do
     RuboCop::Config.new(
       'Spellcheck' => { 'DictionaryFiles' => { 'en' => [File.expand_path('../../../fixtures/en.dic', __dir__)] } },
-      'Spellcheck/Spelling' => { 'Enabled' => true }
+      'Spellcheck/Spelling' => { 'Enabled' => true, 'Ruby' => { 'Identifiers' => true } }
     )
   end
 
@@ -14,8 +14,13 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
     end
   end
 
-  it 'checks strings and identifiers by default at separate Unicode-aware positions' do
+  it 'checks strings and opt-in identifiers at separate Unicode-aware positions' do
     expect(offenses('wrold = "😀 wrold"')).to eq([[1, 0, 'wrold'], [1, 11, 'wrold']])
+  end
+
+  it 'checks strings but not identifiers when Ruby scope settings are omitted' do
+    config['Spellcheck/Spelling'].delete('Ruby')
+    expect(offenses('wrold = "😀 wrold"')).to eq([[1, 11, 'wrold']])
   end
 
   it 'splits snake case, camel case, acronym boundaries, sigils, and digits at each use' do
@@ -64,7 +69,7 @@ RSpec.describe RuboCop::Cop::Spellcheck::Spelling, :config do
   end
 
   it 'allows strings to be disabled without disabling identifiers or comments' do
-    config['Spellcheck/Spelling']['Ruby'] = { 'Strings' => false }
+    config['Spellcheck/Spelling']['Ruby'] = { 'Strings' => false, 'Identifiers' => true }
     expect(offenses("wrold = 'typpo'\n# wrold\n")).to eq([[1, 0, 'wrold'], [2, 2, 'wrold']])
   end
 

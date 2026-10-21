@@ -62,7 +62,7 @@ No dictionary setup or network access is needed.
 
 ## Usage
 
-`Spellcheck/Spelling` is enabled by default and checks Ruby comments, strings, identifiers, Markdown, RDoc, AsciiDoc, and plain text:
+`Spellcheck/Spelling` is enabled by default and checks Ruby comments, strings, Markdown, RDoc, AsciiDoc, and plain text. Identifier checking is opt-in:
 
 ```sh
 bundle exec rubocop
@@ -127,18 +127,20 @@ Comments are parsed as RDoc, excluding indented examples and inline code.
 
 Strings include ordinary and percent literals, string arrays, heredocs, and literal text inside interpolation. Contents are checked literally, not as markup. Symbols, regular expression text, and shell-command text are excluded; Ruby expressions inside interpolation are still checked. Ruby code is never evaluated.
 
-Every identifier occurrence is checked, including method calls, definitions, constants, arguments, and variables. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, and case boundaries. Add intentional API names and abbreviations to your project vocabulary.
+Identifier checking is disabled by default. When enabled, every occurrence is checked, including method calls, definitions, constants, arguments, and variables. Names such as `hello_world`, `helloWorld`, and `HTTPClient` are split at underscores, numbers, and case boundaries. Add intentional API names and abbreviations to your project vocabulary.
 
-Disable either scope independently, or disable both to retain comment-only Ruby checks:
+Enable identifiers or disable strings independently:
 
 ```yaml
 Spellcheck/Spelling:
   Ruby:
     Strings: false
-    Identifiers: false
+    Identifiers: true
 ```
 
 Standard Ruby suppression directives apply to all three scopes. Identifier errors are report-only: renaming one occurrence could break references or external APIs. Strings support `rubocop -A`, but changing a string can change program behavior; review these edits carefully.
+
+Explicitly tagged `ruby` Markdown fences use the same string and identifier settings, including inside lists and blockquotes. Untagged or indented code, other languages, comments inside fences, and invalid Ruby snippets remain excluded.
 
 ### RDoc
 
@@ -154,7 +156,7 @@ The cop discovers `.md` and `.markdown` files and checks their prose:
 Check [the spelling](https://example.com) but not `code_identifiers`.
 ```
 
-Prose, headings, lists, tables, link labels, image descriptions, and footnotes are checked. Code, link destinations, HTML, Liquid expressions, URLs, and email addresses are skipped. No `rubocop-md` plugin is required.
+Prose, headings, lists, tables, link labels, image descriptions, and footnotes are checked. Code other than explicitly tagged `ruby` fences, link destinations, HTML, Liquid expressions, URLs, and email addresses are skipped. No `rubocop-md` plugin is required.
 
 ### YAML front matter
 
@@ -302,7 +304,7 @@ Spellcheck/Spelling:
 # rubocop:enable Spellcheck/Spelling
 ```
 
-Ruby directives apply to comments, strings, and identifiers. In Markdown, use HTML comments:
+Ruby directives apply to comments, strings, and identifiers, including within tagged Ruby fences. In Markdown, use HTML comments:
 
 ```markdown
 <!-- rubocop:disable Spellcheck/Spelling -->
@@ -310,7 +312,7 @@ Intentional project vocabulary.
 <!-- rubocop:enable Spellcheck/Spelling -->
 ```
 
-A trailing `disable` or any `todo` applies only to its own line. Directives accept `all`, cop lists, and reasons after ` -- `. Directives inside code, Liquid, or front matter are ignored. Suppression prevents diagnostics and autocorrection.
+A trailing `disable` or any `todo` applies only to its own line. Directives accept `all`, cop lists, and reasons after ` -- `. HTML-comment directives inside code, Liquid, or front matter are ignored; Ruby directives apply within their own fence. Suppression prevents diagnostics and autocorrection.
 
 To check only one format, use standard file inclusion:
 

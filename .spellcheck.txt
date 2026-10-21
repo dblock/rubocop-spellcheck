@@ -1,6 +1,7 @@
 RuboCop
 AllowedWords
 APIs
+backtick
 AsciiDoc
 Asciidoctor
 admonitions
@@ -48,3 +49,4 @@ txt
 YAML
 backticks
 syntaxes
+untagged

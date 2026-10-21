@@ -17,7 +17,7 @@ Spellcheck/Spelling:
   SafeAutoCorrect: false
   Ruby:
     Strings: true
-    Identifiers: true
+    Identifiers: false
   Markdown:
     FrontMatter:
       Enabled: true

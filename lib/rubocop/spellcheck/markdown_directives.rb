@@ -22,6 +22,10 @@ module RuboCop
         end.join
       end
 
+      def disabled?(line)
+        @disabled.include?(line)
+      end
+
       private
 
       def comment_event(node)

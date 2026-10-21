@@ -11,6 +11,8 @@ module RuboCop
       PIECE = /#{ENTITY}|\\[[:punct:]]|./m
       LIQUID = /\{\{.*?\}\}|\{%.*?%\}/m
 
+      attr_reader :buffer, :directives
+
       def self.file?(path)
         path && EXTENSIONS.include?(File.extname(path).downcase)
       end
@@ -31,8 +33,7 @@ module RuboCop
       def each_span
         return enum_for(__method__) unless block_given?
 
-        document = parse_document
-        @directives = MarkdownDirectives.new(@buffer, document)
+        document = parsed_document
         document.walk do |node|
           next unless node.type == :text
 
@@ -41,13 +42,27 @@ module RuboCop
         end
       end
 
+      def each_ruby_span(version, config:, &)
+        parsed_document.walk do |node|
+          next unless node.type == :code_block && node.fence_info.to_s.split.first == 'ruby'
+
+          MarkdownRuby.new(self, node, version, config: config).each_span(&)
+        end
+      end
+
+      def parser_lines
+        @parser_lines ||= parser_source.lines(chomp: true)
+      end
+
       private
 
-      def parse_document
-        Commonmarker.parse(parser_source, options: {
-                             parse: { smart: false },
-                             extension: { shortcodes: false, footnotes: true }
-                           })
+      def parsed_document
+        @parsed_document ||= Commonmarker.parse(parser_source, options: {
+                                                  parse: { smart: false },
+                                                  extension: { shortcodes: false, footnotes: true }
+                                                }).tap do |document|
+          @directives = MarkdownDirectives.new(@buffer, document)
+        end
       end
 
       def parser_source
