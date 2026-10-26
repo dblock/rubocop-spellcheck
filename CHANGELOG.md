@@ -2,7 +2,7 @@
 
 ### 0.3.0 (Next)
 
-* Your contribution here.
+* Add optional, reproducible Ruby spellchecker benchmarks and research, including verified automatic Rust selection in Kotoshu, without changing production behavior - [@dblock](https://github.com/dblock).
 
 ### 0.2.0 (2026/10/21)
 

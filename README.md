@@ -29,6 +29,7 @@ Spellcheck Ruby comments, strings, identifiers, and documentation with [RuboCop]
   - [Replacing dictionaries and adding languages](#replacing-dictionaries-and-adding-languages)
   - [Exclusions and suppression](#exclusions-and-suppression)
 - [Scope and limitations](#scope-and-limitations)
+- [Spellchecker benchmarks](#spellchecker-benchmarks)
 - [Contributing](#contributing)
 - [Copyright and License](#copyright-and-license)
 
@@ -329,6 +330,10 @@ English words retain accented letters and internal apostrophes; surrounding quot
 Ruby comments use RDoc markup, not YARD or other documentation syntaxes. Other documentation tags are treated as text. Use a project dictionary or standard suppression for intentional non-prose. Word boundaries and spelling follow Kotoshu's selected language; this extension does not add language detection or grammar checking.
 
 Kotoshu ships precompiled gems for macOS, Linux, and Windows. Building native dependencies from source on other platforms may require a Rust toolchain.
+
+## Spellchecker benchmarks
+
+See [the optional Ruby spellchecker comparison](benchmark/README.md) for research, reproducible scripts, pinned inputs, measured results, and correctness tradeoffs. It compares the current checker, Kotoshu's Ruby and automatically selected Rust paths, plain Ruby, native Hunspell and Aspell bindings, and did_you_mean without changing production dependencies or behavior.
 
 ## Contributing
 

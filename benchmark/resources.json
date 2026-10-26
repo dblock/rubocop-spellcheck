@@ -1,0 +1,15 @@
+{
+  "repository": "codenamev/get-up-offa-that-markdown",
+  "revision": "ab75db9b218bd6bfc7c2c303ee4ecfc282979b98",
+  "files": {
+    "spelling.rb": "729d00ae66d36d14cd3a56a8ad14a72b7caad0ffd36907562819cd7c49acc725",
+    "LICENSE": "fabc216fc144a152a5e1995b57054e71923cedbf581d3200aa6a7a5a0a621b49",
+    "data/en/LICENSE": "2a7e8d8ae9e8facc84818546ae2a8d83aec5e9c80a675ff789acd1c338b53b3d",
+    "data/en/words.txt": "2451782f0c8c96db4b7435f42b5cb1928031670bd4ca801f320552da3f0f0509",
+    "data/en/nosuggest.txt": "ca8d5bca37f0ea58220ee610311c032c7585b032d1c66bd3b96ea11c91d39b0d"
+  },
+  "dictionary": {
+    "data/en/en.aff": "8ae1f19d4840d957728ad90555d5a8dff6cc5c046279c95ff0c00fc0a0136c7b",
+    "data/en/en.dic": "f0b1a234bd178bdd01875b2a392a9647f888b8fe879f79c52aae62c2759b3647"
+  }
+}

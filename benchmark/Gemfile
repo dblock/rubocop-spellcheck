@@ -1,0 +1,8 @@
+# frozen_string_literal: true
+
+eval_gemfile '../Gemfile'
+
+gem 'did_you_mean', '2.0.0', require: false
+gem 'ffi-aspell', '1.1.0', require: false
+gem 'ffi-hunspell', '0.6.1', require: false
+gem 'kotoshu', '1.0.8', require: false, force_ruby_platform: true
