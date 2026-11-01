@@ -2,6 +2,7 @@
 
 ### 0.3.0 (Next)
 
+* [#31](https://github.com/dblock/rubocop-spellcheck/pull/31): Add a logo combining RuboCop's unchanged helmet artwork with a pencil, including an editable composition and upstream license - [@dblock](https://github.com/dblock).
 * Your contribution here.
 
 ### 0.2.0 (2026/10/21)
