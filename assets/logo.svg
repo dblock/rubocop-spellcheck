@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">rubocop-spellcheck logo</title>
+  <desc id="description">RuboCop's original helmet logo, unchanged, with a pencil alongside it.</desc>
+  <path fill="#fff" d="M0 0h512v512H0z"/>
+  <image href="rubocop-logo.svg" x="16" y="72" width="360" height="360"/>
+  <g transform="translate(414 262) rotate(22)">
+    <path fill="#17191c" stroke="#fff" stroke-width="6" stroke-linejoin="round" d="M-18-104h36v190L0 124l-18-38z"/>
+    <path fill="#ec1826" d="M-18-104h36v28h-36z"/>
+    <path fill="#fff" d="M-18-76h36v12h-36z"/>
+    <path fill="#fff" d="M-5-51h6V72h-6z"/>
+    <path fill="#e7c9a0" d="M-18 86h36L0 124z"/>
+    <path fill="#17191c" d="m-7 109 7 15 7-15z"/>
+  </g>
+</svg>

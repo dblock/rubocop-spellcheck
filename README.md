@@ -1,5 +1,7 @@
 # rubocop-spellcheck
 
+<img src="assets/logo.png" alt="The RuboCop helmet logo with a pencil alongside it." width="160">
+
 [![Tests](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/test.yml)
 [![Lint](https://github.com/dblock/rubocop-spellcheck/actions/workflows/lint.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/lint.yml)
 [![Package](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml/badge.svg)](https://github.com/dblock/rubocop-spellcheck/actions/workflows/package.yml)
@@ -337,6 +339,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development and [RELEASING.md](RELEAS
 ## Copyright and License
 
 Copyright (c) 2026 Daniel (dB.) Doubrovkine. MIT License; see [LICENSE.txt](LICENSE.txt).
+
+The logo combines RuboCop's unchanged helmet artwork with a pencil. The upstream artwork is distributed under the MIT License; see [its attribution](assets/README.md) and [full license](assets/RUBOCOP-LICENSE).
 
 Kotoshu is a separate BSD-2-Clause dependency. The bundled SCOWL-derived American English dictionary carries its own copyright and redistribution terms; see [its full license](data/en/LICENSE) and [pinned provenance](data/en/README.md). Dictionary files and notices are included in the packaged gem.
 

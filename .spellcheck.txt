@@ -1,4 +1,5 @@
 RuboCop
+RuboCop's
 AllowedWords
 APIs
 backtick
@@ -41,6 +42,7 @@ RSpec
 RubyGems
 SCOWL's
 SHA
+SVG
 sublicense
 sigils
 tokenization

@@ -15,4 +15,6 @@ group :development do
   gem 'danger', require: false
   gem 'danger-changelog', require: false
   gem 'danger-toc', require: false
+  # Danger still relies on Git::Base, removed in git 6.
+  gem 'git', '< 6', require: false
 end
